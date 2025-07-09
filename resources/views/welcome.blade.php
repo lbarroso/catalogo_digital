@@ -32,9 +32,9 @@
     </style>
 </head>
 <body>
-    <img src="{{ asset('admin/dist/img/571.jpg') }}" alt="Imagen de Bienvenida" width="480">
+    <img src="{{ asset('admin/dist/img/Bienvenida.png') }}" alt="Imagen de Bienvenida" width="480">
     <h1>Bienvenido a la Aplicaci&oacute;n Cat&aacute;logo Digital</h1>
     <p>Administra f&aacute;cilmente el inventario con imagenes.</p>
-    <a href="{{ route('products.index') }}" class="enter-btn">Entrar al Sistema</a>
+    <a href="{{ route('products.index') }}" class="enter-btn">Iniciar Una Sesi&oacute;n</a>
 </body>
 </html>

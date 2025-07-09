@@ -7,9 +7,11 @@ use App\Models\Articulo;
 use App\Models\Siac_articulo;
 use App\Models\Siac_arthist;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 
@@ -46,16 +48,7 @@ class ArticuloController extends Controller
         Config::set('database.connections.pgsql', $config);
 
         //
-        $articulos = DB::connection('pgsql')->select(" SELECT $user->almcnt almcnt, a.famcve, a.artcve,
-        ar.invtpoinv, a.artdesc, ah.artcap, a.prvcve, a.artstatus, a.codbarras,
-        ah.artmed, ah.artgms, ah.artprcventa,
-        ((ah.artprcventa*ah.artiva/100)+ah.artprcventa)/ah.artcap AS pieza,
-        ah.artprcventa/ah.artcap,
-        ((ar.inviniuni+ar.inventuni-ar.invsaluni)*ah.artcap)+(ar.invinires+ar.inventres-ar.invsalres) AS Er
-        FROM articulos AS a INNER JOIN (arthist as ah INNER JOIN articul1 as ar ON (ah.arthist = ar.invhist) AND (ah.artcve = ar.artcve)) ON a.artcve = ah.artcve
-        Where ((a.artstatus) = 'A') And ((ar.invmes) = 3) 
-        AND ((ar.inviniuni+ar.inventuni-ar.invsaluni)*ah.artcap)+(ar.invinires+ar.inventres-ar.invsalres) <>0 
-        ORDER BY a.famcve, a.artcve, ar.invtpoinv, ar.invhist DESC;");
+        $articulos = DB::connection('pgsql')->select(" ");
 
         return view('siac.articulos.index', compact('articulos'));
 
@@ -87,16 +80,35 @@ class ArticuloController extends Controller
         Config::set('database.connections.pgsql', $config);
 
         // Conexión a la base de datos SIAC (PostgreSQL)
-        $articulosSiac = DB::connection('pgsql')->select(" SELECT a.famcve, a.artcve,
-            ar.invtpoinv, a.artdesc, ah.artcap, a.prvcve, a.artstatus, a.codbarras,
-            ah.artmed, ah.artgms, ah.artprcventa,
-            ((ah.artprcventa*ah.artiva/100)+ah.artprcventa)/ah.artcap AS pieza,
-            ah.artprcventa/ah.artcap venta,
-            ((ar.inviniuni+ar.inventuni-ar.invsaluni)*ah.artcap)+(ar.invinires+ar.inventres-ar.invsalres) AS Er
-            FROM articulos AS a INNER JOIN (arthist as ah INNER JOIN articul1 as ar ON (ah.arthist = ar.invhist) AND (ah.artcve = ar.artcve)) ON a.artcve = ah.artcve
-            Where ((a.artstatus) = 'A') And ((ar.invmes) = ".$mes." ) 
-            AND ((ar.inviniuni+ar.inventuni-ar.invsaluni)*ah.artcap)+(ar.invinires+ar.inventres-ar.invsalres) <> 0         
-            ORDER BY a.famcve, a.artcve, ar.invtpoinv, ar.invhist DESC");
+        $articulosSiac = DB::connection('pgsql')->select("  SELECT 
+        a.famcve, 
+        a.artcve,
+        a1.invtpoinv, 
+        a.artdesc, 
+        ah.artcap,
+        a.prvcve,
+        a.artstatus,
+        a.codbarras,
+        ah.artmed,
+        ah.artgms, 
+        ROUND((((ah.artprcventa * ah.artiva / 100) + (ah.artprcventa * ah.artiepsvta / 100) + ah.artprcventa) / ah.artcap), 2) AS pieza,  
+        ((a1.inviniuni + a1.inventuni - a1.invsaluni) * ah.artcap) + (a1.invinires + a1.inventres - a1.invsalres) AS Er
+    FROM 
+        articulos a
+    INNER JOIN 
+        (arthist ah
+        INNER JOIN 
+        articul1 a1 ON (ah.arthist = a1.invhist) AND (ah.artcve = a1.artcve)) 
+        ON a.artcve = ah.artcve 
+    WHERE 
+        a.artstatus = 'A' 
+        AND a1.invmes = EXTRACT(MONTH FROM CURRENT_DATE)
+        AND ((a1.inviniuni + a1.inventuni - a1.invsaluni) * ah.artcap) + (a1.invinires + a1.inventres - a1.invsalres) > 0
+    ORDER BY 
+        a.famcve, 
+        a.artcve, 
+        a1.invtpoinv, 
+        a1.invhist DESC;");
 
         // Conexión a la base de datos Inventario (MySQL)
         $articulosInventario = [];
@@ -137,6 +149,9 @@ class ArticuloController extends Controller
         $numRegistros = Product::where('almcnt', $user->almcnt)->count();
 
         if($numRegistros > 0 ){
+
+            // actualizar el stock a 0 donde almcnt coincida
+            Product::where('almcnt', $user->almcnt)->update(['stock' => 0]);
 
             // actualizar precios y existencias
             $numRegistrosActualizados = DB::update('UPDATE products
@@ -227,5 +242,93 @@ class ArticuloController extends Controller
         
         return redirect()->route('products.index')->with('success', 'Transferencia de articulos completada registros nuevos ('.$numRegistrosInsertados.'), registros actualizados ('.$numRegistrosActualizados.')');
     }    
+
+
+    public function cenefasFactura(Request $request)
+   {
+        $user = Auth::user();
+        
+        // Validar la entrada
+        $request->validate([
+            'docnumdoc' => 'required|integer'
+        ]);
+
+        // Configuración de la base de datos
+        $config = [
+            'driver' => 'pgsql',
+            'host' => $user->ip,
+            'port' => 5432,
+            'database' => 'siac',
+            'username' => 'gpsdiconsa',
+            'password' => 'Gp5D1con54',
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+        ];   
+
+        // Establecer la configuración de la base de datos
+        Config::set('database.connections.pgsql', $config);
+
+        $products = DB::connection('pgsql')->select("
+            SELECT  art.artdesc, ah.artpesoum, ah.artpesogrm,
+                    ROUND((((ah.artprcventa * ah.artiva / 100) + (ah.artprcventa * ah.artiepsvta / 100) + ah.artprcventa) / ah.artcap), 2) AS pieza
+            FROM documentos 
+            INNER JOIN docdeta ON (documentos.docord = docdeta.docord) 
+                AND (documentos.almcve = docdeta.almcve) 
+                AND (documentos.unicve = docdeta.unicve) 
+                AND (documentos.regcve = docdeta.regcve)
+            INNER JOIN ARTHIST ah ON (docdeta.artcve = ah.artcve) 
+                AND (docdeta.arthist = ah.arthist)
+            INNER JOIN ARTICULOS art ON (docdeta.artcve = art.artcve) 
+            WHERE documentos.docnumdoc = :docnumdoc
+            GROUP BY documentos.docord, docdeta.artcve, art.artdesc, ah.artprcventa, ah.artiva, ah.artiepsvta,
+                art.prvcve, art.famcve, ah.lineacve, ah.artcap, ah.artmed, ah.artgms, ah.artpesoum, ah.artpesogrm, 
+                ah.arthist, art.artulthist, docdeta.docurped, docdeta.doccanped, docdeta.docursur, docdeta.doccansur, 
+                documentos.docnumdoc
+            ORDER BY art.famcve;  ", ['docnumdoc' => $request->docnumdoc]);
+    
+        // Convertir el arreglo de resultados en una colección de Laravel
+        $products = collect($products);  // Convertimos el resultado en una colección
+
+        // Generar el PDF con los productos
+        $pdf = Pdf::loadView('pdf.cenefas-factura', ['products' => $products]);
+    
+        // Retornar el PDF para su descarga
+        return $pdf->stream('CenefasFactura' . $request->docnumdoc . '.pdf');  
+
+   }
+  
+
+   /*** 
+    SELECT 
+        a.famcve, 
+        a.artcve,
+        a1.invtpoinv, 
+        a.artdesc, 
+        ah.artcap,
+        a.prvcve,
+        a.artstatus,
+        a.codbarras,
+        ah.artmed,
+        ah.artgms, 
+        ROUND((((ah.artprcventa * ah.artiva / 100) + (ah.artprcventa * ah.artiepsvta / 100) + ah.artprcventa) / ah.artcap), 2) AS pieza,  
+        ((a1.inviniuni + a1.inventuni - a1.invsaluni) * ah.artcap) + (a1.invinires + a1.inventres - a1.invsalres) AS Er
+    FROM 
+        articulos a
+    INNER JOIN 
+        (arthist ah
+        INNER JOIN 
+        articul1 a1 ON (ah.arthist = a1.invhist) AND (ah.artcve = a1.artcve)) 
+        ON a.artcve = ah.artcve 
+    WHERE 
+        a.artstatus = 'A' 
+        AND a1.invmes = EXTRACT(MONTH FROM CURRENT_DATE)
+        AND ((a1.inviniuni + a1.inventuni - a1.invsaluni) * ah.artcap) + (a1.invinires + a1.inventres - a1.invsalres) > 0
+    ORDER BY 
+        a.famcve, 
+        a.artcve, 
+        a1.invtpoinv, 
+        a1.invhist DESC;
+    **/
    
 } // class

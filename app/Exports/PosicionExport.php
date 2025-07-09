@@ -41,7 +41,17 @@ class PosicionExport implements FromView, WithColumnFormatting
     {
         $user =  Auth::user();
 
-        $products = DB::select("SELECT products.artcve, products.artdesc, products.artseccion, products.artpesoum, products.artprventa, products.stock FROM products WHERE products.almcnt =".$user->almcnt." AND products.stock > 0 GROUP BY products.artcve, products.artdesc, products.artseccion, products.artpesoum, products.artprventa, products.stock ORDER BY products.category_id, products.artcve, products.artseccion");
+        $products = DB::select("SELECT 
+        products.category_id, 
+        products.artcve, 
+        products.artdesc, 
+        products.artseccion, 
+        products.artpesoum,
+        products.artpesogrm, 
+        products.artprventa, 
+        products.stock 
+        FROM products WHERE products.almcnt =".$user->almcnt." AND products.stock > 0 GROUP BY products.artcve, products.artdesc, products.artseccion, products.artpesoum, products.artprventa, products.stock        
+        ORDER BY products.category_id, products.artcve, products.artseccion");
 
         return view('exports.posicion',['products' => $products ]);
 
@@ -61,15 +71,15 @@ class PosicionExport implements FromView, WithColumnFormatting
 
             'C' => NumberFormat::FORMAT_TEXT,
 
-            'D' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'D' => NumberFormat::FORMAT_NUMBER,
 
-            'E' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'E' => NumberFormat::FORMAT_NUMBER,
 
             'F' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
 
             'G' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
 
-            'H' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,            
+            'H' => NumberFormat::FORMAT_NUMBER,
 
         ];
 

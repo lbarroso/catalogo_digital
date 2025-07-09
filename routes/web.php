@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\ImageController;
+
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\OrderController;
 
 
 
@@ -87,9 +89,12 @@ Route::controller(ImageController::class)->name('images.')->group(function () {
 // menu reportes
 Route::prefix('reports')->group(function(){
     Route::get('diarios',[App\Http\Controllers\ProductController::class,'reportsdiarios'])->name('daily.days');
-    Route::get('descendente',[App\Http\Controllers\ProductController::class,'reportsdescendente'])->name('descendente');        
+    Route::get('cenefas',[App\Http\Controllers\ProductController::class,'cenefas'])->name('cenefas');
+    Route::get('descendente',[App\Http\Controllers\ProductController::class,'reportsdescendente'])->name('descendente');   
     
 });
+
+
 
 // posicion excel
 Route::get('/posicionalmacen', [App\Http\Controllers\ProductController::class, 'posicionexport'])->name('posicion.almacen');
@@ -104,7 +109,49 @@ Route::get('import',[App\Http\Controllers\ArticuloController::class,'import'])->
 Route::get('familias',[App\Http\Controllers\SiacfamiliaController::class,'index']);
 
 // catalogo con imagenes
-Route::get('catalogopdf',[App\Http\Controllers\ProductController::class,'downloadDompdf'])->name('catalogo.pdf');
+Route::post('catalogo/pdf',[App\Http\Controllers\ProductController::class,'downloadDompdf'])->name('catalogo.pdf');
+Route::get('catalogo/pdf/{almcnt}',[App\Http\Controllers\ProductController::class,'descargarcatalogopdf'])->name('catalogo.download.pdf');
+
+// cenefas con precio
+Route::post('cenefas/precio/pdf', [App\Http\Controllers\ProductController::class, 'cenefasetiquetaprecio'])->name('cenefas.precio.pdf');
+// cenefas en blanco
+Route::get('cenefa/blanco/pdf', [App\Http\Controllers\ProductController::class, 'cenefasblanco'])->name('cenefa.blanco.pdf');
+// cenefas de una factura
+Route::get('cenefas-factura',[App\Http\Controllers\ArticuloController::class,'cenefasFactura'])->name('cenefas.factura');
 
 // reutilizar banco de imagenes
 Route::get('/duplicate', [App\Http\Controllers\DuplicateController::class, 'index'])->name('duplicate');
+// eliminar imagenes
+//Route::get('/delete', [App\Http\Controllers\DeleteController::class, 'index'])->name('delete');
+
+Route::get('/chart', [App\Http\Controllers\HighchartController::class, 'handleChart']);
+
+// pagina web
+Route::post('/setAlmcnt', [App\Http\Controllers\WebPageController::class, 'setAlmcnt'])->name('setAlmcnt');
+Route::get('/logout-session', [App\Http\Controllers\WebPageController::class, 'logoutSession'])->name('logoutSession');
+
+//Route::get('/tienda/home', [App\Http\Controllers\WebPageController::class, 'index'])->name('webpages.home');
+Route::match(['get', 'post'], '/tienda/home', [App\Http\Controllers\WebPageController::class, 'index'])->name('webpages.home');
+Route::get('/tienda/categorias', [App\Http\Controllers\WebPageController::class, 'categories'])->name('webpages.categories');
+Route::get('/tienda/categoria', [App\Http\Controllers\WebPageController::class, 'shopcategory'])->name('webpages.shopcategory');
+Route::get('/tienda/categoria/tipo/{type}/{category_id}', [App\Http\Controllers\WebPageController::class, 'shopcategory'])->name('webpages.shopcategory.type');
+Route::get('/tienda/articulo/{product_id}', [App\Http\Controllers\WebPageController::class, 'productdetail'])->name('webpages.productdetail');
+Route::match(['get', 'post'],'/tienda/buscar', [App\Http\Controllers\WebPageController::class, 'search'])->name('webpages.search');
+// existencia
+Route::post('/consultar-existencia', [App\Http\Controllers\ExistenciaController::class, 'consultarExistencia'])->name('consultarExistencia');
+
+// fondo de ahorro
+Route::get('/fondo-ahorro',[App\Http\Controllers\FondoAhorroController::class,'index'])->name('fondo_ahorro.index');
+Route::post('/fondo-ahorro/buscar',[App\Http\Controllers\FondoAhorroController::class,'buscar'])->name('fondo_ahorro.buscar');
+Route::get('/fondo-ahorro/pdf/{id}',[App\Http\Controllers\FondoAhorroController::class,'pdf'])->name('fondo_ahorro.pdf');
+
+// SUPABSE
+Route::get('/ver-imagenes-productos', [\App\Http\Controllers\ProductImageTestController::class, 'index']);
+Route::get('/supabase/products', [\App\Http\Controllers\SupabaseProductController::class, 'index'])->name('supabase.products.index');
+Route::get('/exportar-productos-csv', [\App\Http\Controllers\ProductImageTestController::class, 'exportToCsv'])->name('productos.exportar.csv');
+//syncronizacion de pedidos
+Route::get('admin/orders/sync', [OrderController::class,'syncFromSupabase'])->name('orders.sync');
+// Listado + botón
+Route::get ('orders',[OrderController::class,'index']) ->name('orders.index');         
+// Acción de sincronizar
+Route::post('orders/sync',[OrderController::class,'sync'])  ->name('orders.sync');

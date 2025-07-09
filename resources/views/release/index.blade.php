@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="row mb-2">
         <div class="col-sm-6">
-            <h1 class="m-0"> Productos nuevos  </h1>
+            <h1 class="m-0"> Novedades y ofertas</h1>
         </div>
         <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -24,7 +24,7 @@
                         <div style="display: flex; justify-content: space-between; align-items: center;">
 
                             <span id="card_title">
-                                {{ __('Release') }}
+                                Este m&oacute;dulo permite agregar productos para su difusi&oacute;n y promoci&oacute;n, productos que han bajado de precio, o nuevos art&iacute;culos negociados con proveedores.
                             </span>
 
                              <div class="float-right">
