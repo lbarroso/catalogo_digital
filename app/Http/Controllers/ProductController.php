@@ -37,6 +37,8 @@ class ProductController extends Controller
     }
 
 
+    
+
     /**
      * Store a newly created resource in storage.
      *
@@ -223,10 +225,16 @@ class ProductController extends Controller
     }
     
 
+    
+
     // vista reportes diarios
     function reportsDiarios()
     {
-        return view('reports.diarios');
+        $user =  Auth::user();
+
+        $tiposInventarios = Product::where('almcnt',$user->almcnt)->orderBy('artseccion','ASC')->distinct()->pluck('artseccion');
+
+        return view('reports.diarios', compact('tiposInventarios') );
     }    
 
     // vista reportes diarios
@@ -237,30 +245,40 @@ class ProductController extends Controller
     
 
     // catalogo pdf
-    public function downloadDompdf()
+    public function downloadDompdf(Request $request)
     {
         $user =  Auth::user();
+
         date_default_timezone_set('America/Mexico_City');
+
         $fecha  = date('d-m-Y\TH:i:s');
+
+        $tipoinv = $request->input('artseccion');
+
+        $artprventa = $request->input('artprventa');
 
         $empresa = Empresa::find($user->almcnt);
 
-        $products = Product::select('products.artcve','products.artseccion', 'products.artdesc', 'products.artpesoum', 'products.stock', 'media.id', \DB::raw('media.name AS image'), 'categories.name')
+        // productos
+        $products = Product::select('products.artcve', 'products.artprventa', 'products.artseccion', 'products.artdesc', 'products.artpesoum', 'products.stock', 'media.id', \DB::raw('media.name AS image'), 'categories.name')
         ->leftJoin('media', 'products.id', '=', 'media.model_id')
         ->join('categories', 'products.category_id', '=', 'categories.id')
         ->where('products.artstatus', 'A')
         ->where('almcnt', $user->almcnt)
         ->where('stock', '>', 0)
+        ->where('artseccion', $tipoinv)
         ->orderBy('products.category_id')
         ->orderBy('products.artcve')
         ->groupBy('products.artcve') // Agrupar por products.artcve para evitar duplicados
         ->get();
         
-        // familias
+        // categorias
         $categories = Product::select('name')        
         ->join('categories', 'products.category_id', '=', 'categories.id')
         ->where('stock', '>', 0)
         ->where('almcnt', $user->almcnt)
+        ->where('artseccion', $tipoinv)
+        ->orderBy('categories.name')
         ->distinct()
         ->get();    
 
@@ -272,10 +290,143 @@ class ProductController extends Controller
         INNER JOIN media ON products.id = media.model_id
         WHERE releases.almcnt =".$user->almcnt);        
         
-        $pdf = Pdf::loadView('pdf.catalogo',['products' => $products, 'categories' => $categories, 'empresa'=>$empresa, 'releases'=>$releases ]);
+        $pdf = Pdf::loadView('pdf.catalogo',['products' => $products, 'categories' => $categories, 'empresa'=>$empresa, 'releases'=>$releases, 'artprventa' =>$artprventa ]);
 
         return $pdf->stream('CatalogoDigital'.$fecha.'.pdf');
     }
 
+   // cenefas
+   public function cenefas(Request $request)
+   {
+        $user =  Auth::user();
+        $tipoinv = 1;
+
+        $tiposInventarios = Product::where('almcnt',$user->almcnt)->orderBy('artseccion')->distinct()->pluck('artseccion');
+
+        // categorias
+        $categories = Product::select('name','categories.id')        
+        ->join('categories', 'products.category_id', '=', 'categories.id')
+        ->where('stock', '>', 0)
+        ->where('almcnt', $user->almcnt)
+        ->where('artseccion', $tipoinv)
+        ->orderBy('categories.name',)
+        ->distinct()
+        ->get();    
+        
+        return view('reports.cenefas', compact('categories','tiposInventarios'));
+   }
+
+    // cenefas con precio
+    public function cenefasEtiquetaPrecio(Request $request)
+    {
+        $user = Auth::user();
+
+        // Establecer la zona horaria
+        date_default_timezone_set('America/Mexico_City');
+    
+        // Obtener la fecha actual
+        $fecha = date('d-m-Y\TH:i:s');
+    
+        // Validar la entrada
+        $request->validate([
+            'category_id' => 'required|integer'
+        ]);
+    
+        $category_id = $request->input('category_id');
+        $tipoinv = !empty($request->input('artseccion')) ? $request->input('artseccion') : 1;
+        
+        // $tipoinv = 6;
+    
+        // Construir la consulta base de productos
+        $query = Product::select(
+                'products.artprventa',
+                'products.artdesc',
+                'products.artpesoum',
+                'products.category_id'
+            )            
+            
+            ->where('products.artstatus', 'A')
+            ->where('almcnt', $user->almcnt)
+            ->where('stock', '>', 0)
+            ->where('artseccion', $tipoinv)
+            ->orderBy('products.category_id')
+            ->orderBy('products.artcve')
+            ->groupBy('products.artprventa', 'products.artdesc', 'products.artpesoum', 'products.category_id')
+            ->distinct(); // Añadido para asegurarse de que no haya duplicados
+    
+        // Incluir la condición de categoría si el category_id es mayor a cero
+        if ($category_id > 0) {
+            $query->where('products.category_id', $category_id);
+        }
+    
+        // Obtener los productos
+        $products = $query->get();
+    
+        // Generar el PDF con los productos
+        $pdf = Pdf::loadView('pdf.cenefas', ['products' => $products]);
+    
+        // Retornar el PDF para su descarga
+        return $pdf->stream('CenefasConPrecio' . $fecha . '.pdf');  
+    }
+
+
+   // cenefas
+   public function cenefasBlanco(Request $request)
+   {
+ 
+       $pdf = Pdf::loadView('pdf.cenefa');
+
+       return $pdf->stream('CenefasBlanco.pdf');
+   }
+
+
+
+    /**
+     * Genera y descarga el catálogo en PDF.
+     */
+    public function descargarCatalogoPdf(Request $request)
+    {
+        // 1) Parámetros base
+        $almcnt          = $request->input('almcnt', 2039);      // 2039 por defecto
+        $mostrarPrecios  = $request->boolean('precios', false);  // ¿mostrar precio?
+        $empresa         = Empresa::findOrFail($almcnt);
+        $fechaFile       = now('America/Mexico_City')->format('d-m-Y_His');
+
+        /* 2) Productos (Eloquent + relationships) */
+        $products = Product::with(['media:id,model_id,name', 'category:id,name'])
+            ->select('id','category_id','artcve','artprventa','artseccion',
+                     'artdesc','artpesoum','stock')
+            ->where([
+                ['almcnt',  $almcnt],
+                ['artstatus','A'],
+            ])
+            ->where('stock','>',0)
+            ->orderBy('category_id')
+            ->orderBy('artcve')
+            ->get();
+
+        /* 3) Categorías únicas derivadas de la colección anterior  */
+        $categories = $products->pluck('category.name')->unique()->sort()->values();
+
+        /* 4) Productos “novedad” (relación Release → Product) */
+        $releases = Release::where('almcnt', $almcnt)
+            ->with(['product.media','product.category'])
+            ->whereHas('product', fn($q)=>$q->where('stock','>',0))
+            ->get()
+            ->map->product
+            ->unique('artcve')
+            ->values();      // colección lista para la vista
+
+        /* 5) Render-PDF */
+        $pdf = Pdf::loadView(
+            'pdf.catalogo',
+            compact('products','categories','releases','empresa','mostrarPrecios')
+        )->setPaper('letter','portrait');
+
+        return $pdf->stream("CatalogoDigital-{$fechaFile}.pdf");
+    }
+
+
+   
 
 } // class

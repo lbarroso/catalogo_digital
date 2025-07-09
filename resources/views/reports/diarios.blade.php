@@ -26,58 +26,71 @@
 
           <div class="card-body">
 
-              <div class="row">
-                
-         
-
-                        <div class="col-lg-6">
+				<div class="row">
 							
-							<div class="card card-primary card-outline">
-								<div class="card-header">
-								  <h5 class="card-title m-0">Catalogo digital con imagenes </h5>								  
-								  
-								</div>
-								<div class="card-body">
+					<div class="col-lg-6">
+						
+						<div class="card card-primary card-outline">
+							<div class="card-header">
+								<h5 class="card-title m-0">Cat&aacute;logo digital con imagenes </h5>								  
+								
+							</div>
+							<div class="card-body">
+								<form method="post" action="{{ route('catalogo.pdf') }}" target="_pdf">
+									@csrf
+									<p>	<img src="{{ asset('admin/dist/img/fondocatalogo.png') }}" class="rounded"  width="120"></p>
+
 									<p>
-										<img src="{{ asset('admin/dist/img/fondocatalogo.png') }}" class="rounded"  width="120">
+										<label> Precio venta: </label>
+										<select class="form-control" name="artprventa" id="artprventa">																																	
+											<option value="NO"> SIN MOSTRAR PRECIO DE VENTA </option>
+											<option value="SI"> INCLUIR PRECIO DE VENTA </option>
+										</select>
+									</p>									
+
+									<p>
+										<label> Inventario: </label>
+										<select class="form-control" name="artseccion" id="artseccion">
+											
+											@foreach ($tiposInventarios as $tipoinv)
+												<option value="{{ $tipoinv }}"> TIPO DE INVENTARIO: {{ $tipoinv }}</option>
+											@endforeach	
+										</select>
 									</p>
 									
-								  	<p>
-										<a href="{{ route('catalogo.pdf') }}" target="_pdf" class="btn btn-primary"><i class="fas fa-download"></i> Generar catalogo PDF</a>
-									</p>
-								</div>
-							</div>                        
+									<p> <button type="submit" class="btn btn-primary"> <i class="fas fa-download"></i> Generar catalogo PDF </button>
+								</form>
+							</div>
+						</div>                        
 
-						</div>                  
-
-						<div class="col-lg-6">
+					</div>    
+					
+					<div class="col-lg-6">
 							
-							<div class="card card-primary card-outline">
-								<div class="card-header">
-								  <h5 class="card-title m-0">Posici&oacute;n de almacen </h5>
-								</div>
-								<div class="card-body">
-								  
-									<p>
-										<img src="{{ asset('admin/dist/img/excel.jpg') }}" class="rounded"  width="120">
-									</p>													
-									<p>
-								 		<a href="{{ route('posicion.almacen') }}" class="btn btn-primary"><i class="fas fa-download"></i> Descargar archivo Excel</a>
-									</p>
-									<div class="alert alert-danger"> <a href="{{ route('home') }}"> Importar datos desde SIAC, para actualizar existencias</a> </div>
-								</div>
-							</div>                        
+						<div class="card card-primary card-outline">
+							<div class="card-header">
+								<h5 class="card-title m-0"> Cat&aacute;logo de supervisores </h5>
+							</div>
+							<div class="card-body">								  
+								<div class="row">								
+									<img src="{{ asset('admin/dist/img/excel.jpg') }}" class="rounded"  width="220">																		
+								</div>	
+								<div class="row">
+									<a href="{{ route('posicion.almacen') }}" class="btn btn-primary"><i class="fas fa-download"></i> Descargar archivo Excel</a>
+								</div>									
+							</div>
+						</div>                        
 
-						</div>
-
-				  
-              </div>
+					</div>					
+													
+				</div>
 
           </div>
 
       </div>
 
   </div>
+
 </div>
     
 @endsection

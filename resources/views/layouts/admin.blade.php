@@ -161,25 +161,25 @@
 							<a href="{{ route('releases.index') }}" class="nav-link {{ active_menu(route('releases.index')) }}">
 								<i class="nav-icon fas fa-star"></i>
 								<p>
-                                    Novedades
+                                    Novedades y ofertas
 								</p>
 							</a>
 						</li>		                        
 
 						
 						
-						<li class="nav-item ">
-							<a href="{{ route('empresas.index') }}" class="nav-link {{ active_menu(route('empresas.index')) }}">
-								<i class="nav-icon fas fa-building"></i>
-								<p>
-									Empresas
-								</p>
-							</a>
-						</li>	
+                        <li class="nav-item">
+                            <a href="{{ route('orders.index') }}"  class="nav-link {{ active_menu(route('orders.index')) }}">
+
+                                <i class="nav-icon fas fa-shopping-cart"></i>
+                                <p> Pedidos </p>
+                            </a>
+                        </li>      
 			
 						
 						<!--reportes-->
                         <li class="nav-item {{ menu_open('reports/*',1) }}">
+
                             <a href="#" class="nav-link {{ menu_open('reports/*',2) }}">
                               <i class="nav-icon fas fa-chart-bar"></i>
                               <p>
@@ -192,9 +192,16 @@
                               <li class="nav-item">
                                 <a href="{{ route('daily.days') }}" class="nav-link {{ active_menu(route('daily.days')) }}">
                                   <i class="far fa-circle nav-icon"></i>
-                                  <p>Diarios</p>
+                                  <p>Imprimir cat&aacute;logo </p>
                                 </a>
                               </li>
+                              <li class="nav-item">
+                                <a href="{{ route('cenefas') }}" class="nav-link {{ active_menu(route('cenefas')) }}">
+                                  <i class="far fa-circle nav-icon"></i>
+                                  <p>Imprimir cenefas</p>
+                                </a>
+                              </li>                        
+                              
                             </ul>                                  
 
                         </li>					
@@ -245,7 +252,7 @@
 
 
         <footer class="main-footer">
-            <strong> Administraci&oacute;n de Inventarios {{ config('app.name', 'Laravel') }} </strong>                
+            <strong> Aplicaci&oacute;n Cat&aacute;logo Digital {{ Auth::user()->name }} </strong>                
             <div class="float-right d-none d-sm-inline-block">
                 <b>Versi&oacute;n</b> 2.0
             </div>

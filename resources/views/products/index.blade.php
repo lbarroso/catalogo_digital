@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="row mb-2">
         <div class="col-sm-6">
-            <h1 class="m-0">Productos {{ config('app.name', 'Laravel') }} </h1>
+            <h1 class="m-0">Productos Cat&aacute;logo </h1>
         </div>
         <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -25,12 +25,20 @@
           </div>
 
           <div class="card-body">
-              <div class="row">
-                  <div class="col-12 mb-3">
-                      <a href="{{ route('product.create') }}" class="btn btn-primary modal-trigger" > <i class="fa fa-plus"></i> Nuevo producto</a>
-						  <small class="lead">  [F2] </small>
-                  </div>
-              </div>
+
+          <div class="row">
+                <div class="col-12 mb-3 d-flex align-items-center">
+                    <a 
+                    href="{{ route('productos.exportar.csv') }}" 
+                    class="btn btn-success me-2"
+                    >
+                    <i class="fa fa-download"></i>
+                    Descargar CSV productos
+                    </a>
+
+                </div>
+            </div>
+
 
               <div class="row">
                   <div class="col">

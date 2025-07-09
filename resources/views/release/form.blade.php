@@ -4,7 +4,7 @@
         
         <div class="form-group">
             Clave SIAC
-            {{ Form::text('artcve', $release->artcve, ['class' => 'form-control' . ($errors->has('artcve') ? ' is-invalid' : ''), 'placeholder' => 'Artcve']) }}
+            <input type="text" name="artcve" id="artcve" class="form-control" style="width:auto;">
             {!! $errors->first('artcve', '<div class="invalid-feedback">:message</div>') !!}
         </div>
 

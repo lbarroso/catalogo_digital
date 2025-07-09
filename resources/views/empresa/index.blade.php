@@ -28,9 +28,7 @@
                             </span>
 
                              <div class="float-right">
-                                <a href="{{ route('empresas.create') }}" class="btn btn-primary btn-md float-right"  data-placement="left">
-                                  <i class="fa fa-plus"></i> Nueva empresa
-                                </a>
+                                &nbsp;
                               </div>
                         </div>
                     </div>
@@ -71,7 +69,7 @@
                                                     <a class="btn btn-md btn-success" href="{{ route('empresas.edit',$empresa->id) }}"><i class="fa fa-fw fa-edit"></i> editar </a>
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-md"><i class="fa fa-fw fa-trash"></i> eliminar </button>
+                                                    <!--<button type="submit" class="btn btn-danger btn-md"><i class="fa fa-fw fa-trash"></i> eliminar </button>-->
                                                 </form>
                                             </td>
                                         </tr>
