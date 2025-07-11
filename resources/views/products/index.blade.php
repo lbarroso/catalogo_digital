@@ -30,12 +30,16 @@
                 <div class="col-12 mb-3 d-flex align-items-center">
                     <a 
                     href="{{ route('productos.exportar.csv') }}" 
-                    class="btn btn-success me-2"
-                    >
+                    class="btn btn-success me-2">
                     <i class="fa fa-download"></i>
                     Descargar CSV productos
                     </a>
 
+                    <button id="btnSyncInventory" class="btn btn-primary d-flex align-items-center">
+                        <span class="me-2">Sincronizar Inventario</span>
+                        <i id="spinnerSync" class="fas fa-sync-alt fa-spin d-none"></i>
+                    </button>
+                    
                 </div>
             </div>
 
@@ -102,7 +106,62 @@
 <script src="{{ asset('js/admin/property.js') }}"></script>
 <script src="{{ asset('js/admin/image.js') }}"></script>
 <script src="{{ asset('js/admin/ganancia.js') }}"></script>
+
+<script>
+document.getElementById('btnSyncInventory')
+        .addEventListener('click', async () => {
+
+    const btn     = document.getElementById('btnSyncInventory');
+    const spinner = document.getElementById('spinnerSync');
+    const token   = document.querySelector('meta[name="csrf-token"]').content;
+
+    // UI: activar spinner y deshabilitar botón
+    spinner.classList.remove('d-none');
+    btn.setAttribute('disabled', 'disabled');
+
+    try {
+        const res = await fetch("{{ route('inventory.sync') }}", {
+            method : 'POST',
+            headers: {
+                'X-CSRF-TOKEN': token,
+                'Accept'      : 'application/json',
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            const afectados = Array.isArray(data.result)
+                              ? data.result.length : 0;
+
+            $.notify(
+              `✔ Inventario sincronizado Enviados: ${data.synced} ` +
+              `Afectados en Supabase: ${afectados} `,
+              { className: 'success', autoHideDelay: 6000 }
+            );
+        } else {
+            $.notify(
+              `❌ Error: ${data.error || 'ver consola'}`,
+              { className: 'error', autoHideDelay: 8000 }
+            );
+            console.error(data);
+        }
+    } catch (err) {
+        console.error(err);
+        $.notify('❌ Error de red o servidor', { className: 'error' });
+    } finally {
+        // UI: ocultar spinner y habilitar botón
+        spinner.classList.add('d-none');
+        btn.removeAttribute('disabled');
+    }
+});
+</script>
+
+
+
 @endsection
+
 <!--Agregado rapido nuevo producto-->
 @section('modal')
     @include('products.modalProduct')

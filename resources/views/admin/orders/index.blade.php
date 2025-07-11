@@ -43,6 +43,7 @@
         <th>	Cliente (ID – Nombre)</th>
         <th>	Artículo (Clave – Descripción)</th>
         <th>Cantidad</th>
+        <th>Presetaci&oacute;n</th>
         <th>	Precio unitario</th>
         <th>	Importe total</th>
       </tr>
@@ -55,6 +56,7 @@
         <td>{{ $o->ctecve }} - {{ $o->ctename }}</td>
         <td>{{ $o->artcve }} - {{ $o->artdesc }}</td>
         <td>{{ $o->doccant }}</td>
+        <td>{{ $o->presentacion }}</td>
         <td>${{ number_format($o->artprventa,2) }}</td>
         <td>${{ number_format($o->importe,2) }}</td>
       </tr>
