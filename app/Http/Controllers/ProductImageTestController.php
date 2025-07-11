@@ -48,9 +48,7 @@ class ProductImageTestController extends Controller
             fputcsv($output, $columns);
 
             foreach ($productos as $p) {
-                $image = $p->hasMedia('images')
-                    ? $p->artcve . '.' . pathinfo($p->getFirstMediaPath('images'), PATHINFO_EXTENSION)
-                    : 'placeholder.png';
+
 
                 fputcsv($output, [
                     $p->id,

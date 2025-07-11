@@ -6,7 +6,7 @@ use App\Http\Controllers\ImageController;
 
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
-
+use App\Http\Controllers\InventorySyncController;
 
 
 /*
@@ -154,4 +154,6 @@ Route::get('admin/orders/sync', [OrderController::class,'syncFromSupabase'])->na
 // Listado + botón
 Route::get ('orders',[OrderController::class,'index']) ->name('orders.index');         
 // Acción de sincronizar
-Route::post('orders/sync',[OrderController::class,'sync'])  ->name('orders.sync');
+Route::post('orders/sync',[OrderController::class,'sync'])  ->name('orders.sync')->middleware('auth');
+Route::post('/inventory/sync',[InventorySyncController::class, 'sync'])->name('inventory.sync')->middleware('auth');
+

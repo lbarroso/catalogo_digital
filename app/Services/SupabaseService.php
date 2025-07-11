@@ -105,4 +105,64 @@ class SupabaseService
             );
         }
     }
-}
+
+    /**
+     * Upsert masivo de productos en Supabase (stock, price, description, image...).
+     *
+     * @param array $rows
+     * @return array
+     * @throws \RuntimeException
+     */
+    public function upsertProducts(array $rows): array
+    {
+        try {
+            $url = "{$this->baseUrl}/products?on_conflict=code,almcnt";
+    
+            $response = Http::withHeaders(array_merge(
+                    $this->headers,
+                    ['Prefer' => 'resolution=merge-duplicates,return=representation']
+                ))
+                ->post($url, $rows);
+    
+            $response->throw();
+            return $response->json() ?? [];
+    
+        } catch (RequestException $e) {
+            $status = $e->response?->status();
+            $body   = $e->response?->body();
+            throw new \RuntimeException(
+                "Error HTTP $status al hacer upsert de productos en Supabase: $body"
+            );
+        }
+    }
+    
+
+    /**
+     * Pone a cero el stock de todos los products de un almcnt dado.
+     *
+     * @param int $almcnt
+     * @return void
+     * @throws \RuntimeException
+     */
+    public function resetStockByAlmcnt(int $almcnt): void
+    {
+        try {
+            // PATCH /products?almcnt=eq.{almcnt} con { stock: 0 }
+            $response = Http::withHeaders($this->headers)
+                ->patch("{$this->baseUrl}/products?almcnt=eq.{$almcnt}", [
+                    'stock' => 0
+                ]);
+
+            $response->throw();
+        } catch (RequestException $e) {
+            $status = $e->response?->status();
+            $body   = $e->response?->body();
+            throw new \RuntimeException(
+                "Error HTTP $status al resetear stock en Supabase: $body"
+            );
+        }
+    }
+    
+
+
+} // class
