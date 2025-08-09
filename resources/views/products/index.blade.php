@@ -27,19 +27,78 @@
           <div class="card-body">
 
           <div class="row">
-                <div class="col-12 mb-3 d-flex align-items-center">
-                    <a 
-                    href="{{ route('productos.exportar.csv') }}" 
-                    class="btn btn-success me-2">
-                    <i class="fa fa-download"></i>
-                    Descargar CSV productos
-                    </a>
+                <div class="col-12 mb-4">
+                    <div class="card card-outline card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-tools"></i> Herramientas de Gestión de Productos
+                            </h3>
+                            <div class="card-tools">
+                                <span class="badge badge-info">
+                                    <i class="fas fa-database me-1"></i>
+                                    Inventario sincronizado: 557 productos
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-grid">
+                                        <button id="btnImportSiac" 
+                                                class="btn btn-primary btn-lg d-flex align-items-center justify-content-center"
+                                                title="Importa y sincroniza todos los artículos desde el sistema SIAC"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top">
+                                            <i class="fas fa-download me-2"></i>
+                                            <span id="txtImportSiac">Importar desde SIAC</span>
+                                            <i id="spinnerImport" class="fas fa-spinner fa-spin d-none ms-2"></i>
+                                        </button>
+                                        <small class="text-muted mt-1">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Sincroniza artículos del sistema SIAC
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-grid">
+                                        <button id="btnSyncInventory" 
+                                                class="btn btn-info btn-lg d-flex align-items-center justify-content-center"
+                                                title="Sincroniza el inventario actual con la base de datos Supabase"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top">
+                                            <i class="fas fa-sync-alt me-2"></i>
+                                            <span class="me-2">Sincronizar Inventario</span>
+                                            <i id="spinnerSync" class="fas fa-sync-alt fa-spin d-none"></i>
+                                        </button>
+                                        <small class="text-muted mt-1">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Actualiza inventario en aplicaci&oacute;n pedidos
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-grid">
 
-                    <button id="btnSyncInventory" class="btn btn-primary d-flex align-items-center">
-                        <span class="me-2">Sincronizar Inventario</span>
-                        <i id="spinnerSync" class="fas fa-sync-alt fa-spin d-none"></i>
-                    </button>
-                    
+                                    <a href="{{ route('productos.exportar.csv') }}"
+                                        class="btn btn-secondary btn-lg d-flex align-items-center justify-content-center"
+                                        title="Descargar archivo csv productos"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top">
+                                        <i class="fas fa-sync-alt me-2"></i>
+                                        <span class="me-2">CSV Productos</span>
+                                        <i id="spinnerSync" class="fas fa-sync-alt fa-spin d-none"></i>
+                                    </a>
+                                    <small class="text-muted mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Descargar archivo csv productos de primera vez
+                                    </small>                                    
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -83,6 +142,97 @@
 <link rel="stylesheet" href="{{ asset('admin/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
 <link rel="stylesheet" href="{{ asset('admin/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
 
+<style>
+/* Estilos mejorados para los botones de herramientas */
+.btn-lg {
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn-lg:disabled {
+    transform: none;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Efectos para los iconos */
+.btn-lg i {
+    transition: transform 0.3s ease;
+}
+
+.btn-lg:hover i:not(.fa-spin) {
+    transform: scale(1.1);
+}
+
+/* Estilo para las descripciones */
+.text-muted {
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* Animación para el spinner de importación */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.btn:disabled .fa-spinner {
+    animation: pulse 1s infinite;
+}
+
+/* Mejorar el aspecto de las tarjetas */
+.card-outline.card-primary {
+    border-top: 3px solid #007bff;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Espaciado mejorado */
+.d-grid {
+    display: grid;
+    gap: 0.5rem;
+}
+
+/* Estilo para el badge de estado */
+.badge-info {
+    background-color: #17a2b8;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Responsividad mejorada */
+@media (max-width: 768px) {
+    .btn-lg {
+        padding: 10px 15px;
+        font-size: 1rem;
+    }
+    
+    .col-md-4 {
+        margin-bottom: 1rem;
+    }
+    
+    .badge-info {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+    }
+}
+</style>
+
 @endsection
 
 @section('scripts')
@@ -108,6 +258,58 @@
 <script src="{{ asset('js/admin/ganancia.js') }}"></script>
 
 <script>
+// Inicializar tooltips de Bootstrap
+$(document).ready(function() {
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+
+// Funcionalidad para el botón de Importar desde SIAC
+document.getElementById('btnImportSiac')
+        .addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    const btn     = document.getElementById('btnImportSiac');
+    const spinner = document.getElementById('spinnerImport');
+    const txtBtn  = document.getElementById('txtImportSiac');
+    const originalText = txtBtn.textContent;
+
+    // Confirmar acción con el usuario
+    const confirmed = confirm('¿Está seguro de que desea importar artículos desde SIAC? Este proceso puede tardar varios minutos.');
+    
+    if (!confirmed) {
+        return;
+    }
+
+    // UI: activar spinner y deshabilitar botón
+    spinner.classList.remove('d-none');
+    btn.setAttribute('disabled', 'disabled');
+    txtBtn.textContent = 'Importando...';
+
+    // Mostrar notificación inicial
+    $.notify(
+        '🔄 Iniciando importación desde SIAC... Por favor espere.',
+        { className: 'info', autoHideDelay: 4000 }
+    );
+
+    try {
+        // Pequeño delay para mostrar las notificaciones
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Redirigir a la ruta de importación
+        window.location.href = "{{ route('import') }}";
+        
+    } catch (err) {
+        console.error(err);
+        $.notify('❌ Error al iniciar la importación', { className: 'error' });
+        
+        // UI: restaurar estado del botón en caso de error
+        spinner.classList.add('d-none');
+        btn.removeAttribute('disabled');
+        txtBtn.textContent = originalText;
+    }
+});
+
+// Funcionalidad para el botón de Sincronizar Inventario
 document.getElementById('btnSyncInventory')
         .addEventListener('click', async () => {
 

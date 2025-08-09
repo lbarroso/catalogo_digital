@@ -160,10 +160,10 @@
 						</li>						
 
 						<li class="nav-item ">
-							<a href="{{ route('releases.index') }}" class="nav-link {{ active_menu(route('releases.index')) }}">
-								<i class="nav-icon fas fa-star"></i>
+							<a href="{{ route('productos.ofertas') }}" class="nav-link {{ active_menu(route('productos.ofertas')) }}">
+								<i class="fas fa-tags"></i>
 								<p>
-                                    Novedades y ofertas
+                                    Productos en Oferta
 								</p>
 							</a>
 						</li>		                        

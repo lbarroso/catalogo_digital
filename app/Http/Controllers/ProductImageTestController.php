@@ -19,13 +19,13 @@ class ProductImageTestController extends Controller
     public function exportToCsv()
     {
 
-        $user =  Auth::user();
-
+        $almcnt = auth()->user()->almcnt;
+        
         $productos = \App\Models\Product::with('media')
-        ->where('almcnt', $user->almcnt)
+        ->where('almcnt', $almcnt)
         ->where('stock', '>', 0)
         ->get();
-
+        
         $filename = 'productos_supabase_' . now()->format('Ymd_His') . '.csv';
 
         $headers = [
@@ -49,6 +49,9 @@ class ProductImageTestController extends Controller
 
             foreach ($productos as $p) {
 
+                $image = $p->hasMedia('images')
+                ? $p->artcve . '.' . pathinfo($p->getFirstMediaPath('images'), PATHINFO_EXTENSION)
+                : 'placeholder.png';                
 
                 fputcsv($output, [
                     $p->id,

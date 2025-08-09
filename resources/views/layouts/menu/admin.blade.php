@@ -27,13 +27,28 @@
         </a>
     </li>
 
-    <li class="nav-item">
-        <a href="{{ route('admin.products.index') }}" class="nav-link {{ active_menu(route('admin.products.index')) }}">
-            <i class="nav-icon fas fa-table"></i>
+    <li class="nav-item {{ menu_open('productos/*', 1) }}">
+        <a href="#" class="nav-link {{ menu_open('productos/*', 2) }}">
+            <i class="nav-icon fas fa-box"></i>
             <p>
                 Productos
+                <i class="right fas fa-angle-left"></i>
             </p>
         </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+                <a href="{{ route('admin.products.index') }}" class="nav-link {{ active_menu(route('admin.products.index')) }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Catálogo General</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('productos.ofertas') }}" class="nav-link {{ active_menu(route('productos.ofertas')) }}">
+                    <i class="fas fa-tags nav-icon text-warning"></i>
+                    <p>Productos en Oferta</p>
+                </a>
+            </li>
+        </ul>
     </li>
 
     <li class="nav-item">

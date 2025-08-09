@@ -55,7 +55,7 @@ class InventorySyncController extends Controller
                     'name'        => $p->artdesc,
                     'code'        => $p->artcve,
                     'barcode'     => $p->codbarras,
-                    'description' => 'producto',
+                    'description' => $p->artestilo,
                     'price'       => $p->artprventa,
                     'stock'       => $p->stock,
                     'unit'        => $p->artpesoum,

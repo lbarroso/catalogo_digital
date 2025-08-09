@@ -155,5 +155,24 @@ Route::get('admin/orders/sync', [OrderController::class,'syncFromSupabase'])->na
 Route::get ('orders',[OrderController::class,'index']) ->name('orders.index');         
 // Acción de sincronizar
 Route::post('orders/sync',[OrderController::class,'sync'])  ->name('orders.sync')->middleware('auth');
+// Análisis de cliente
+Route::get('orders/analisis-cliente',[OrderController::class,'analisisCliente'])->name('orders.analisis-cliente')->middleware('auth');
+// Detalle de pedido
+Route::get('orders/detalle-pedido',[OrderController::class,'detallePedido'])->name('orders.detalle-pedido')->middleware('auth');
 Route::post('/inventory/sync',[InventorySyncController::class, 'sync'])->name('inventory.sync')->middleware('auth');
+
+// ============== RUTAS PARA PRODUCTOS EN OFERTA ==============
+Route::middleware('auth')->group(function () {
+    // Vista principal de productos en oferta
+    Route::get('/productos/ofertas', [App\Http\Controllers\ProductController::class, 'productosOferta'])->name('productos.ofertas');
+    
+    // Agregar producto a oferta por clave (artcve)
+    Route::post('/productos/ofertas/agregar', [App\Http\Controllers\ProductController::class, 'agregarProductoOferta'])->name('productos.oferta.agregar');
+    
+    // Eliminar producto de oferta
+    Route::post('/productos/ofertas/eliminar', [App\Http\Controllers\ProductController::class, 'eliminarProductoOferta'])->name('productos.oferta.eliminar');
+    
+    // Buscar producto por clave (opcional para vista previa)
+    Route::post('/productos/buscar-por-clave', [App\Http\Controllers\ProductController::class, 'buscarProductoPorClave'])->name('productos.buscar.clave');
+});
 

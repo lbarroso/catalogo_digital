@@ -16,7 +16,7 @@ class Product extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [ 
-        'almcnt', 'artcve', 'artdesc', 'prvcve', 'artstatus', 'category_id', 'codbarras', 'artseccion', 'stock',  'artprcosto', 'artprventa', 'artpesogrm', 'artpesoum', 'created_at', 'updated_at',
+        'almcnt', 'artcve', 'artdesc', 'prvcve', 'artstatus', 'category_id', 'codbarras', 'artmarca', 'artestilo', 'artcolor', 'artseccion', 'arttalla', 'stock', 'artimg', 'artprcosto', 'artprventa', 'artpesogrm', 'artpesoum', 'artganancia', 'eximin', 'eximax', 'artdetalle', 'created_at', 'updated_at',
     ];   
     
     protected function slug(): Attribute{

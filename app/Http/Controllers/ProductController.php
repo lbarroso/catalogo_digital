@@ -426,7 +426,169 @@ class ProductController extends Controller
         return $pdf->stream("CatalogoDigital-{$fechaFile}.pdf");
     }
 
+    // ============== MÉTODOS PARA PRODUCTOS EN OFERTA ==============
 
-   
+    /**
+     * Mostrar productos en oferta
+     * 
+     * @return \Illuminate\Http\Response
+     */
+    public function productosOferta()
+    {
+        $user = Auth::user();
+        
+        // Obtener productos en oferta del almacén del usuario autenticado
+        $productos = Product::with(['media', 'category'])
+            ->where('almcnt', $user->almcnt)
+            ->where('artestilo', 'oferta')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+        
+        return view('products.productos-oferta', compact('productos'));
+    }
+
+    /**
+     * Agregar producto a oferta por clave (artcve)
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function agregarProductoOferta(Request $request)
+    {
+        $request->validate([
+            'artcve' => 'required|string|max:50'
+        ]);
+
+        $user = Auth::user();
+        $artcve = trim($request->artcve);
+
+        try {
+            // Buscar el producto por clave en el almacén del usuario
+            $producto = Product::where('artcve', $artcve)
+                ->where('almcnt', $user->almcnt)
+                ->first();
+
+            if (!$producto) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "No se encontró un producto con la clave '{$artcve}' en este almacén."
+                ], 404);
+            }
+
+            // Verificar si ya está en oferta
+            if ($producto->artestilo === 'oferta') {
+                return response()->json([
+                    'success' => false,
+                    'message' => "El producto '{$producto->artdesc}' ya está en oferta."
+                ], 400);
+            }
+
+            // Actualizar el campo artestilo a 'oferta'
+            $producto->update(['artestilo' => 'oferta']);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Producto '{$producto->artdesc}' agregado exitosamente a ofertas.",
+                'producto' => [
+                    'id' => $producto->id,
+                    'artcve' => $producto->artcve,
+                    'artdesc' => $producto->artdesc,
+                    'artprventa' => $producto->artprventa
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor. Inténtalo nuevamente.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Eliminar producto de oferta
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function eliminarProductoOferta(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|integer|exists:products,id'
+        ]);
+
+        $user = Auth::user();
+
+        try {
+            // Buscar el producto por ID en el almacén del usuario
+            $producto = Product::where('id', $request->id)
+                ->where('almcnt', $user->almcnt)
+                ->where('artestilo', 'oferta')
+                ->first();
+
+            if (!$producto) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Producto no encontrado en ofertas.'
+                ], 404);
+            }
+
+            // Actualizar el campo artestilo a 'producto'
+            $producto->update(['artestilo' => 'producto']);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Producto '{$producto->artdesc}' eliminado exitosamente de ofertas."
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor. Inténtalo nuevamente.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Buscar producto por clave para vista previa (opcional)
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function buscarProductoPorClave(Request $request)
+    {
+        $request->validate([
+            'artcve' => 'required|string|max:50'
+        ]);
+
+        $user = Auth::user();
+        $artcve = trim($request->artcve);
+
+        $producto = Product::with(['media', 'category'])
+            ->where('artcve', $artcve)
+            ->where('almcnt', $user->almcnt)
+            ->first();
+
+        if (!$producto) {
+            return response()->json([
+                'success' => false,
+                'message' => "No se encontró un producto con la clave '{$artcve}'."
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'producto' => [
+                'id' => $producto->id,
+                'artcve' => $producto->artcve,
+                'artdesc' => $producto->artdesc,
+                'artprventa' => $producto->artprventa,
+                'stock' => $producto->stock,
+                'artestilo' => $producto->artestilo,
+                'categoria' => $producto->category->name ?? 'Sin categoría',
+                'imagen' => $producto->getFirstMediaUrl('images', 'thumb')
+            ]
+        ]);
+    }
 
 } // class
