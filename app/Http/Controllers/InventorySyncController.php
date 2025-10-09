@@ -36,6 +36,7 @@ class InventorySyncController extends Controller
                     $q->selectRaw('MIN(id)')
                       ->from('products')
                       ->where('almcnt', $almcnt)
+                      ->whereIn('artseccion', [1, 6])
                       ->groupBy('artcve');
                 })
                 ->get();

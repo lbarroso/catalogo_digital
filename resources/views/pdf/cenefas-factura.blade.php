@@ -44,10 +44,10 @@
                 </p>
                 <div class="content">
                     
-                    <p style="text-align:center; font-size:15pt;"> <strong> {{ utf8_encode(substr($product->artdesc, 0, 25)) }} </strong>  </p>
+                    <p style="text-align:center; font-size:15pt;"> <strong> {{ utf8_encode(substr($product->artdesc, 0, 20)) }} </strong>  {{ $product->artgms }} {{ $product->artmed  }} </p>
                     <p style="text-align:center; font-size:11pt; color:#FFF;">
                         <strong>
-                            {{ $product->artpesogrm }} / {{ $product->artpesoum  }}
+                          {{ $product->artcve }}
                         </strong>
                     </p>
                 </div>

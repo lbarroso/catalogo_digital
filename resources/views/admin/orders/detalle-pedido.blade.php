@@ -61,9 +61,15 @@
                         <button type="button" class="btn btn-sm btn-primary" onclick="imprimirDetalle()">
                             <i class="fas fa-print"></i> Imprimir
                         </button>
+                        <!--
                         <button type="button" class="btn btn-sm btn-success" onclick="exportarDetalle()">
                             <i class="fas fa-download"></i> Exportar
                         </button>
+                        -->
+                        <a class="btn btn-sm btn-secondary" href="detalle-pedido-pdf?order_id={{ $infoPedido->order_id }}" >
+                            <i class="fas fa-download"></i> Exportar
+                        </a>                        
+
                     </div>
                 </div>
                 <div class="card-body p-0">

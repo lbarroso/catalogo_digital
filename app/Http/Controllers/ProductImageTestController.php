@@ -24,6 +24,9 @@ class ProductImageTestController extends Controller
         $productos = \App\Models\Product::with('media')
         ->where('almcnt', $almcnt)
         ->where('stock', '>', 0)
+        ->whereIn('artseccion', [1,6])
+        ->orderBy('category_id') 
+        ->orderBy('artcve')
         ->get();
         
         $filename = 'productos_supabase_' . now()->format('Ymd_His') . '.csv';

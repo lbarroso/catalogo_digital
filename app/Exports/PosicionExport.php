@@ -51,7 +51,7 @@ class PosicionExport implements FromView, WithColumnFormatting
         products.artprventa, 
         products.stock 
         FROM products WHERE products.almcnt =".$user->almcnt." AND products.stock > 0 GROUP BY products.artcve, products.artdesc, products.artseccion, products.artpesoum, products.artprventa, products.stock        
-        ORDER BY products.category_id, products.artcve, products.artseccion");
+        ORDER BY products.category_id ");
 
         return view('exports.posicion',['products' => $products ]);
 

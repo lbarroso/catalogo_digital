@@ -250,7 +250,8 @@ class ArticuloController extends Controller
         
         // Validar la entrada
         $request->validate([
-            'docnumdoc' => 'required|integer'
+            'docnumdoc' => 'required|integer',
+            'docord'    => 'required|integer',
         ]);
 
         // Configuración de la base de datos
@@ -270,7 +271,7 @@ class ArticuloController extends Controller
         Config::set('database.connections.pgsql', $config);
 
         $products = DB::connection('pgsql')->select("
-            SELECT  art.artdesc, ah.artpesoum, ah.artpesogrm,
+            SELECT  art.artdesc, docdeta.artcve, ah.artmed, ah.artgms,
                     ROUND((((ah.artprcventa * ah.artiva / 100) + (ah.artprcventa * ah.artiepsvta / 100) + ah.artprcventa) / ah.artcap), 2) AS pieza
             FROM documentos 
             INNER JOIN docdeta ON (documentos.docord = docdeta.docord) 
@@ -280,12 +281,12 @@ class ArticuloController extends Controller
             INNER JOIN ARTHIST ah ON (docdeta.artcve = ah.artcve) 
                 AND (docdeta.arthist = ah.arthist)
             INNER JOIN ARTICULOS art ON (docdeta.artcve = art.artcve) 
-            WHERE documentos.docnumdoc = :docnumdoc
+            WHERE documentos.docnumdoc = :docnumdoc AND documentos.docord = :docord
             GROUP BY documentos.docord, docdeta.artcve, art.artdesc, ah.artprcventa, ah.artiva, ah.artiepsvta,
                 art.prvcve, art.famcve, ah.lineacve, ah.artcap, ah.artmed, ah.artgms, ah.artpesoum, ah.artpesogrm, 
                 ah.arthist, art.artulthist, docdeta.docurped, docdeta.doccanped, docdeta.docursur, docdeta.doccansur, 
                 documentos.docnumdoc
-            ORDER BY art.famcve;  ", ['docnumdoc' => $request->docnumdoc]);
+            ORDER BY art.famcve;  ", ['docnumdoc' => $request->docnumdoc, 'docord' => $request->docord]);
     
         // Convertir el arreglo de resultados en una colección de Laravel
         $products = collect($products);  // Convertimos el resultado en una colección

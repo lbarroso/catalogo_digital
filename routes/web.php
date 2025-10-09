@@ -160,6 +160,9 @@ Route::get('orders/analisis-cliente',[OrderController::class,'analisisCliente'])
 // Detalle de pedido
 Route::get('orders/detalle-pedido',[OrderController::class,'detallePedido'])->name('orders.detalle-pedido')->middleware('auth');
 Route::post('/inventory/sync',[InventorySyncController::class, 'sync'])->name('inventory.sync')->middleware('auth');
+// detalle de pedido PDF
+Route::get('detalle-pedido-pdf',[OrderController::class,'detallePdf'])->name('detalle.pedido.pdf')->middleware('auth');
+
 
 // ============== RUTAS PARA PRODUCTOS EN OFERTA ==============
 Route::middleware('auth')->group(function () {

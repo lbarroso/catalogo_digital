@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Articulo;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf; // Importa la fachada de la librería de PDF
 
 class OrderController extends Controller
 {
@@ -411,7 +412,7 @@ class OrderController extends Controller
         $almcnt = auth()->user()->almcnt;
         $rows   = $this->supabase->fetchOrdersByAlmcnt($almcnt);
         $total  = count($rows);
-
+        // dd($rows);
         if ($total === 0) {
             return back()->with('error', 'No se encontraron pedidos para sincronizar.');
         }
@@ -427,7 +428,7 @@ class OrderController extends Controller
             'ctecve'       => $r['ctecve'],
             'ctename'      => $r['cliente_name'],
             'artcve'       => $r['code'],
-            'artdesc'      => $r['product_name'],
+            'artdesc'      => trim($r['product_name']), 
             'presentacion' => $r['unit'],
             'doccant'      => $r['quantity'],
             'artprventa'   => $r['unit_price'],
@@ -451,4 +452,42 @@ class OrderController extends Controller
             return back()->with('error', "❌ Error en sincronización: " . $e->getMessage());
         }
     }
-}
+
+    public function detallePdf(Request $request)
+    {
+        // Obtener el ID del pedido y el almacén del usuario autenticado
+        $orderId = $request->get('order_id');
+        $almcnt = auth()->user()->almcnt;
+
+        // Buscar los productos del pedido por order_id y almcnt
+        $productos = Order::where('almcnt', $almcnt)
+            ->where('order_id', $orderId)
+            ->orderBy('artdesc', 'asc') // Ordenar los productos por descripción
+            ->get();
+
+        // Si no se encuentran productos, devolver un error 404
+        if ($productos->isEmpty()) {
+            return response()->json(['error' => 'Pedido no encontrado'], 404);
+        }
+
+        // Obtener información general del pedido del primer producto
+        $infoPedido = $productos->first();
+
+        // Calcular el total del pedido sumando el precio * cantidad de cada producto
+        $totalPedido = $productos->sum(function($item) {
+            return $item->doccant * $item->artprventa;
+        });
+
+        // Cargar la vista Blade que servirá de plantilla para el PDF
+        // 'pdf.detalle-pedido' debe ser el nombre de tu vista
+        $pdf = PDF::loadView('admin/orders/detalle-pedido-pdf', compact(
+            'productos',
+            'infoPedido',
+            'totalPedido'
+        ));
+
+        // Descargar el PDF con un nombre de archivo específico
+        return $pdf->download("detalle_pedido_{$orderId}.pdf");
+    }
+
+} // class

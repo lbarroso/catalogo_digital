@@ -30,7 +30,11 @@ class ProductController extends Controller
         $user =  Auth::user();
         
         if($request->ajax()){
-            return response()->json(['data' => Product::with('category')->Where('almcnt',$user->almcnt)->Where('stock','>',0)->get()]);
+            // ordenar por categoria ASC   
+            // y stock mayor a 0
+            // y almcnt del usuario autenticado
+            // y con relacion a categoria            
+            return response()->json(['data' => Product::with('category')->Where('almcnt',$user->almcnt)->Where('stock','>',0)->orderBy('category_id')->get()]);
         }
 
         return view('products.index');        

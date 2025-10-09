@@ -107,13 +107,20 @@
 
                                 <div class="row">
                                     
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label for="docord">Número de Orden</label>
+                                            <input type="text" class="form-control" id="docord" name="docord" placeholder="Número de Orden">
+                                        </div>
+                                    </div>                                    
+
                                     <!-- Filtro Número de Factura -->
                                     <div class="col-md-2">
                                         <div class="form-group">
                                             <label for="docnumdoc">Número de Factura</label>
                                             <input type="text" class="form-control" id="docnumdoc" name="docnumdoc" placeholder="Número de Factura">
                                         </div>
-                                    </div>
+                                    </div>                                
 
                                     <!-- Botón de Enviar -->
                                     <div class="col-md-3 d-flex align-items-end">
