@@ -404,7 +404,7 @@ class OrderController extends Controller
         exit;
     }
 
-    /**
+   /**
      * Sincroniza pedidos desde Supabase al MySQL local.
      */
     public function sync(Request $r)
@@ -442,16 +442,77 @@ class OrderController extends Controller
                 Order::upsert(
                     $batch,
                     ['order_id','artcve','almcnt'],   // clave única compuesta
-                    ['doccant','artprventa','importe',
-                     'artdesc','docupdated','sync_date']
+                    ['doccant','artprventa','importe','artdesc','docupdated','sync_date']
                 );
             });
 
             return back()->with('success', "✅ Sincronización exitosa: $total registros actualizados.");
+
         } catch (\Exception $e) {
             return back()->with('error', "❌ Error en sincronización: " . $e->getMessage());
         }
     }
+
+
+/**
+ * Sincroniza pedidos de un cliente específico (ctecve) desde Supabase al MySQL local.
+ */
+public function syncByCliente(Request $r)
+{
+    $almcnt = auth()->user()->almcnt;
+    $ctecve = $r->input('ctecve');
+
+    if (!$ctecve) {
+        return back()->with('error', 'Debes seleccionar un cliente (ctecve) para sincronizar.');
+    }
+
+    // 1. Obtener datos desde Supabase filtrando por almacén y cliente
+    $rows = $this->supabase->fetchOrdersByAlmcntCtecve($almcnt, $ctecve);
+    $total = count($rows);
+
+    if ($total === 0) {
+        return back()->with('error', "No se encontraron pedidos para sincronizar del cliente $ctecve.");
+    }
+
+    // 2. Mapear datos para upsert
+    $batch = array_map(fn($r) => [
+        'order_id'     => $r['id'],
+        'docfec'       => Carbon::parse($r['order_date'])->toDateTimeString(),
+        'sync_date'    => Carbon::parse($r['sync_date'])->toDateTimeString(),
+        'almcnt'       => $r['almcnt'],
+        'doccreated'   => Carbon::parse($r['doccreated'])->toDateTimeString(),
+        'docupdated'   => Carbon::parse($r['docupdated'])->toDateTimeString(),
+        'ctecve'       => $r['ctecve'],
+        'ctename'      => $r['cliente_name'],
+        'artcve'       => $r['code'],
+        'artdesc'      => trim($r['product_name']),
+        'presentacion' => $r['unit'],
+        'doccant'      => $r['quantity'],
+        'artprventa'   => $r['unit_price'],
+        'importe'      => $r['quantity'] * $r['unit_price'],
+        'created_at'   => now(),
+        'updated_at'   => now(),
+    ], $rows);
+
+    try {
+        DB::transaction(function () use ($batch){
+
+            // 3.1 Upsert local
+            Order::upsert(
+                $batch,
+                ['order_id','artcve','almcnt'], // clave única compuesta
+                ['doccant','artprventa','importe','artdesc','docupdated','sync_date']
+            );
+
+        });
+
+        return back()->with('success', "✅ Sincronización exitosa: $total registros actualizados del cliente $ctecve.");
+
+    } catch (\Exception $e) {
+        return back()->with('error', "❌ Error en sincronización: " . $e->getMessage());
+    }
+}
+
 
     public function detallePdf(Request $request)
     {

@@ -7,6 +7,12 @@ use App\Models\Product;
 use Illuminate\Support\Facades\File;
 use Intervention\Image\ImageManagerStatic as Image;
 
+/**
+ * Comando para exportar imágenes de productos del almacén 2039,
+ * redimensionarlas a 600x600 píxeles y renombrarlas por código.
+ * php artisan export:product-images
+ */
+
 class ExportProductImages extends Command
 {
     protected $signature = 'export:product-images';

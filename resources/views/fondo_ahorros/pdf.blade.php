@@ -47,6 +47,7 @@
 <body>
     <div class="header">
         <h2>Estado de Cuenta del Fondo de Ahorro</h2>
+        <h3>Ciclo diciembre 2024-noviembre 2025</h3>
     </div>
 
     <table class="table">
@@ -86,10 +87,7 @@
             <th>Total a Pagar:</th>
             <td><strong>${{ number_format($fondo->total_pagar ?? 0, 2) }}</strong></td>
         </tr>
-        <tr>
-            <th>Situación:</th>
-            <td>{{ $fondo->situacion ?? 'Sin definir' }}</td>
-        </tr>
+
     </table>
 
     <div class="signature">

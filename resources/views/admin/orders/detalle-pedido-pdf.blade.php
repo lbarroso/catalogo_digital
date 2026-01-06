@@ -61,12 +61,12 @@
             text-align: left;
         }
         th {
-            background-color: #343a40;
+            background-color: #98989A;
             color: white;
             font-size: 10px;
         }
         td {
-            font-size: 7px;
+            font-size: 9px;
         }
         .text-right {
             text-align: right;
@@ -121,8 +121,7 @@
                     <th width="10%">Cantidad</th>
                     <th width="8%">Presentación</th>
                     <th width="12%">Precio Unit.</th>
-                    <th width="12%">Subtotal</th>
-                    <th width="6%">Estado</th>
+                    <th width="12%">Subtotal</th>                    
                 </tr>
             </thead>
             <tbody>
@@ -134,8 +133,7 @@
                     <td>{{ $producto->doccant }}</td>
                     <td>{{ $producto->presentacion }}</td>
                     <td>${{ number_format($producto->artprventa, 2) }}</td>
-                    <td>${{ number_format($producto->doccant * $producto->artprventa, 2) }}</td>
-                    <td>OK</td>
+                    <td>${{ number_format($producto->doccant * $producto->artprventa, 2) }}</td>                    
                 </tr>
                 @endforeach
             </tbody>
@@ -146,7 +144,7 @@
                     <td>-</td>
                     <td class="text-right"><strong>Promedio: ${{ number_format($productos->avg('artprventa'), 2) }}</strong></td>
                     <td><strong>${{ number_format($totalPedido, 2) }}</strong></td>
-                    <td>-</td>
+                    
                 </tr>
             </tfoot>
         </table>

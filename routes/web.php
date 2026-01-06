@@ -45,12 +45,6 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-// view test adminLte
-
-//Route::get('/plantilla', [App\Http\Controllers\HomeController::class, 'adminlte'])->name('adminlte');
-
-
-
 // productos
 
 Route::apiResource('products',App\Http\Controllers\ProductController::class)->middleware('auth');
@@ -151,10 +145,14 @@ Route::get('/supabase/products', [\App\Http\Controllers\SupabaseProductControlle
 Route::get('/exportar-productos-csv', [\App\Http\Controllers\ProductImageTestController::class, 'exportToCsv'])->name('productos.exportar.csv');
 //syncronizacion de pedidos
 Route::get('admin/orders/sync', [OrderController::class,'syncFromSupabase'])->name('orders.sync');
+
+
 // Listado + botón
 Route::get ('orders',[OrderController::class,'index']) ->name('orders.index');         
 // Acción de sincronizar
 Route::post('orders/sync',[OrderController::class,'sync'])  ->name('orders.sync')->middleware('auth');
+Route::post('orders/sync-by-cliente', [OrderController::class, 'syncByCliente'])->name('orders.syncByCliente');
+
 // Análisis de cliente
 Route::get('orders/analisis-cliente',[OrderController::class,'analisisCliente'])->name('orders.analisis-cliente')->middleware('auth');
 // Detalle de pedido
@@ -178,4 +176,5 @@ Route::middleware('auth')->group(function () {
     // Buscar producto por clave (opcional para vista previa)
     Route::post('/productos/buscar-por-clave', [App\Http\Controllers\ProductController::class, 'buscarProductoPorClave'])->name('productos.buscar.clave');
 });
+
 

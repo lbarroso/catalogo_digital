@@ -48,6 +48,29 @@ class SupabaseService
         }
     }    
 
+/**
+ * Obtiene pedidos desde Supabase filtrando por almacén y cliente (ctecve).
+ */
+public function fetchOrdersByAlmcntCtecve(int $almcnt, int $ctecve): array
+{
+    try {
+        $resp = Http::withHeaders($this->headers)
+            ->post("{$this->baseUrl}/rpc/get_orders_by_almcnt_ctecve", [
+                'p_almcnt' => $almcnt,
+                'p_ctecve' => $ctecve
+            ]);
+
+        $resp->throw(); // lanza excepción si hay error HTTP
+
+        return $resp->json();
+
+    } catch (RequestException $e) {
+        $msg = $e->response?->body() ?? $e->getMessage();
+        throw new \RuntimeException("Error RPC Supabase (get_orders_by_almcnt_ctecve): $msg");
+    }
+}
+
+
 
     /**
      * Obtiene todos los pedidos para un almacén dado.
@@ -162,6 +185,130 @@ class SupabaseService
             );
         }
     }
+    
+
+/* ============================================================
+ *  CREA USUARIO EN SUPABASE AUTH (auth.users) CON SERVICE ROLE KEY
+ * ============================================================ */
+public function createAuthUser(string $email, string $password): array
+{
+    $authUrl = rtrim(config('services.supabase.url'), '/') . '/auth/v1';
+    $serviceKey = config('services.supabase.service_role_key');
+
+    try {
+        $response = Http::withHeaders([
+                'apikey'        => $serviceKey,
+                'Authorization' => 'Bearer ' . $serviceKey,
+                'Content-Type'  => 'application/json',
+                'Accept'        => 'application/json',   // ← IMPORTANTE
+            ])
+            ->post("$authUrl/admin/users", [
+                'email'         => $email,
+                'password'      => $password,
+                'email_confirm' => true,
+                'state'         => 'active'
+            ]);
+
+        $response->throw();
+
+        return $response->json()['user'] ?? $response->json();
+
+    } catch (RequestException $e) {
+        $msg = $e->response?->body() ?? $e->getMessage();
+        throw new \RuntimeException("Error creando usuario en AUTH: $msg");
+    }
+}
+
+
+
+
+    /* ============================================================
+     *  INSERTA REGISTRO EN TABLA public.users
+     * ============================================================ */
+    public function insertPublicUser(array $data): array
+    {
+        try {
+            $response = Http::withHeaders(array_merge(
+                    $this->headers,
+                    ['Prefer' => 'return=representation'] // Para obtener el registro insertado
+                ))
+                ->post("{$this->baseUrl}/users", [$data]); // Array de 1 registro
+
+            $response->throw();
+            return $response->json()[0] ?? $response->json();
+
+        } catch (RequestException $e) {
+            $status = $e->response?->status();
+            $body   = $e->response?->body();
+
+            throw new \RuntimeException(
+                "Error al insertar usuario en public.users: HTTP $status → $body"
+            );
+        }
+    }
+
+
+
+    /* ============================================================
+     *  ELIMINA USUARIO DE AUTH (ROLLBACK)
+     * ============================================================ */
+    public function deleteAuthUser(string $authUserId): void
+    {
+        $authUrl = rtrim(config('services.supabase.url'), '/') . '/auth/v1';
+
+        try {
+            $response = Http::withHeaders([
+                    'apikey'        => config('services.supabase.key'),
+                    'Authorization' => 'Bearer '.config('services.supabase.key'),
+                ])
+                ->delete("$authUrl/admin/users/{$authUserId}");
+
+            $response->throw();
+
+        } catch (RequestException $e) {
+            $msg = $e->response?->body() ?? $e->getMessage();
+            throw new \RuntimeException("Error eliminando usuario de AUTH: $msg");
+        }
+    }
+
+
+    public function listPublicUsers(): array
+    {
+        try {
+            $response = Http::withHeaders($this->headers)
+                ->get("{$this->baseUrl}/users?select=*");
+    
+            $response->throw();
+            return $response->json();
+    
+        } catch (\Exception $e) {
+            throw new \RuntimeException("Error obteniendo public.users: ".$e->getMessage());
+        }
+    }
+
+
+/* ============================================================
+ *  LISTAR TODOS LOS auth.users (requiere service role key)
+ * ============================================================ */
+public function listAuthUsers(): array
+{
+    $authUrl = rtrim(config('services.supabase.url'), '/') . '/auth/v1';
+    $serviceKey = config('services.supabase.service_role_key');
+
+    try {
+        $response = Http::withHeaders([
+            'apikey'        => $serviceKey,
+            'Authorization' => 'Bearer ' . $serviceKey,
+            'Accept'        => 'application/json',
+        ])->get("$authUrl/admin/users");
+
+        $response->throw();
+        return $response->json()['users'] ?? $response->json();
+
+    } catch (\Exception $e) {
+        throw new \RuntimeException("Error obteniendo auth.users: ".$e->getMessage());
+    }
+}
     
 
 

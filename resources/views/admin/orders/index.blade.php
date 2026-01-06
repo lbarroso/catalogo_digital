@@ -130,30 +130,79 @@
 
     {{-- Panel de Sincronización --}}
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card card-outline card-warning">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-sync-alt"></i> Panel de Sincronización</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p>Última sincronización: <strong>{{ $ultima_sync ?? 'No disponible' }}</strong></p>
-                            <p>Total de registros: <strong>{{ $orders->total() }}</strong></p>
-                        </div>
-                        <div class="col-md-6 text-right">
-                            <form action="{{ route('orders.sync') }}" method="POST" class="d-inline">
-                                @csrf
-                                <button class="btn btn-warning btn-lg">
-                                    <i class="fas fa-sync-alt"></i> Sincronizar Pedidos
-                                </button>
-                            </form>
-                        </div>
+    <div class="col-12">
+        <div class="card card-outline card-warning shadow-sm">
+
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-sync-alt"></i> Panel de Sincronización
+                </h3>
+            </div>
+
+            <div class="card-body">
+
+                <!-- Información -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Última sincronización:</p>
+                        <h5><strong>{{ $ultima_sync ?? 'No disponible' }}</strong></h5>
+
+                        <p class="mb-1 text-muted">Total de registros sincronizados:</p>
+                        <h5><strong>{{ $orders->total() }}</strong></h5>
+                    </div>
+
+                    <!-- Botón de sincronización general -->
+                    <div class="col-md-6 text-md-right text-center align-self-center">
+                        <form action="{{ route('orders.sync') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button class="btn btn-warning btn-lg px-4 shadow-sm">
+                                <i class="fas fa-retweet"></i> Sincronizar Pedidos
+                            </button>
+                        </form>
                     </div>
                 </div>
+
+                <hr>
+
+                <!-- Sincronización por Cliente -->
+                <div class="mt-4">
+                    <h5 class="text-warning mb-3">
+                        <i class="fas fa-user-tag"></i> Sincronizar Pedidos por Cliente
+                    </h5>
+
+                    <form action="{{ route('orders.syncByCliente') }}" method="POST" class="row g-3">
+                        @csrf
+
+                        <div class="col-md-4">
+                            <label for="ctecve" class="form-label">Clave del Cliente</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                </div>
+                                <input type="number"
+                                       name="ctecve"
+                                       id="ctecve"
+                                       class="form-control"
+                                       placeholder="Ej: 182"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 align-self-end">
+                            <button type="submit" class="btn btn-primary btn-lg px-4 shadow-sm">
+                                <i class="fas fa-sync-alt"></i> Sincronizar Cliente
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>
+</div>
 
 
 
