@@ -504,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
               </p>
               
               <div class="mt-auto">
-                  @if ($numRegistros > 0)
+                  @if ($numRegistros > 0 && $empresa->regleyenda == null)
                       
                       <button id="btnImportImages" class="btn btn-info btn-lg w-100 d-flex align-items-center justify-content-center">
                           <i class="fas fa-file-import me-2"></i>
@@ -524,48 +524,75 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
   </div>
 
-  <!-- Card 3: Página Web -->
+ 
+
+  <!-- Card 4: Eliminar productos e imágenes del almacén (solo usuarios autenticados) -->
+  @auth
   <div class="col-lg-4 col-md-6 mb-4">
       <div class="card h-100 card-hover shadow-sm">
-          <div class="card-header text-center bg-success text-white">
+          <div class="card-header text-center text-white" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
               <div class="card-icon mb-2">
-                  <i class="fas fa-globe fa-3x"></i>
+                  <i class="fas fa-trash-alt fa-3x"></i>
               </div>
-              <h4 class="card-title mb-0">Página Web</h4>
+              <h4 class="card-title mb-0">Limpiar almacén</h4>
           </div>
           <div class="card-img-container">
-              <img src="{{ asset('admin/dist/img/webpages.jpg') }}" class="card-img-uniform" alt="Página Web">
+              <img src="{{ asset('admin/dist/img/import.jpg') }}" class="card-img-uniform" alt="Eliminar productos">
           </div>
           <div class="card-body d-flex flex-column">
-              <div class="mb-3">
-                  <div class="status-badge status-online">
-                      <i class="fas fa-wifi me-1"></i>
-                      Catálogo en línea activo
-                  </div>
+              <div class="alert alert-warning alert-custom mb-3">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  <strong>Irreversible:</strong> Se eliminarán todos los productos y sus imágenes del almacén {{ Auth::user()->almcnt ?? 'actual' }}.
               </div>
-              
               <p class="card-text flex-grow-1">
-                  Una vez que los productos y las imágenes se han cargado, los usuarios pueden acceder al catálogo digital desde sus equipos dentro de la red DICONSA. Incluye filtros de búsqueda, categorías de productos y opciones para ver más detalles.
+                  Use esta opción para vaciar el catálogo del almacén y volver a importar desde cero. No afecta a otros almacenes.
               </p>
-              
-              <div class="mt-auto">
-                  <div class="d-grid gap-2">
-                      <a href="{{ route('webpages.home') }}" target="_blank" class="btn btn-success btn-lg d-flex align-items-center justify-content-center">
-                          <i class="fas fa-external-link-alt me-2"></i>
-                          Acceder al Catálogo
-                      </a>
-                      <a href="http://10.101.21.24/catalogo/public/tienda/home" target="_blank" class="btn btn-outline-success btn-sm">
-                          <i class="fas fa-link me-1"></i>
-                          Enlace directo
-                      </a>
-                  </div>
-              </div>
+              <!-- SI ALMACEN = 2038 NO MOSTRAR EL BOTON -->
+              @if (Auth::user()->almcnt != 2039)    
+                <div class="mt-auto">
+                    <button type="button" class="btn btn-danger btn-lg w-100 d-flex align-items-center justify-content-center" data-toggle="modal" data-target="#modalResetWarehouse">
+                        <i class="fas fa-trash-alt me-2"></i>
+                        Eliminar productos e imágenes del almacén
+                    </button>
+                </div>
+              @endif
           </div>
       </div>
   </div>
+  @endauth
 </div>
 
-
-
+<!-- Modal de confirmación: Eliminar productos e imágenes del almacén -->
+@auth
+<div class="modal fade" id="modalResetWarehouse" tabindex="-1" role="dialog" aria-labelledby="modalResetWarehouseLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalResetWarehouseLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Confirmar eliminación
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    Se eliminarán <strong>todos los productos</strong> y sus imágenes asociadas del almacén <strong>{{ Auth::user()->almcnt ?? 'actual' }}</strong>. Esta acción no se puede deshacer.
+                </p>
+                <p class="text-muted small mt-2 mb-0">¿Desea continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <form action="{{ route('products.resetCurrentWarehouse') }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i> Eliminar todo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endauth
 
 @endsection

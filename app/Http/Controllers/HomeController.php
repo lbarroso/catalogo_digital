@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Familia;
 use App\Models\Product;
+use App\Models\Empresa;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -28,19 +29,17 @@ class HomeController extends Controller
         $user =  Auth::user();
         // Obtener el registro de la empresa
         $numRegistros = Product::where('almcnt', $user->almcnt)->count();
-        
-        return view('home', compact('numRegistros'));
+        // obtener el registro de la empresa
+        $empresa = Empresa::where('id', $user->almcnt)->first();
+        return view('home', compact('numRegistros', 'empresa'));
     }
 
     public function adminlte()
     {
 
-        $familias = Familia::paginate();
-
-        return view('test.adminlte', compact('familias'))
-            ->with('i', (request()->input('page', 1) - 1) * $familias->perPage());
-
-        // return view('test.adminlte');
+        /**
+         * 
+         */
         
     }
 

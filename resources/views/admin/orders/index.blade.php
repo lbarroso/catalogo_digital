@@ -130,56 +130,93 @@
 
     {{-- Panel de Sincronización --}}
     <div class="row mb-4">
-    <div class="col-12">
-        <div class="card card-outline card-warning shadow-sm">
-
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="card-title mb-0">
-                    <i class="fas fa-sync-alt"></i> Panel de Sincronización
-                </h3>
-            </div>
-
-            <div class="card-body">
-
-                <!-- Información -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <p class="mb-1 text-muted">Última sincronización:</p>
-                        <h5><strong>{{ $ultima_sync ?? 'No disponible' }}</strong></h5>
-
-                        <p class="mb-1 text-muted">Total de registros sincronizados:</p>
-                        <h5><strong>{{ $orders->total() }}</strong></h5>
-                    </div>
-
-                    <!-- Botón de sincronización general -->
-                    <div class="col-md-6 text-md-right text-center align-self-center">
-                        <form action="{{ route('orders.sync') }}" method="POST" class="d-inline">
-                            @csrf
-                            <button class="btn btn-warning btn-lg px-4 shadow-sm">
-                                <i class="fas fa-retweet"></i> Sincronizar Pedidos
-                            </button>
-                        </form>
-                    </div>
+        <div class="col-12 mb-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between">
+                <h5 class="mb-0 text-dark">
+                    <i class="fas fa-cloud-download-alt text-warning mr-2"></i> Sincronizar desde Aplicación de pedidos
+                </h5>
+                <div class="sync-kpis">
+                    <span class="badge badge-light border text-dark mr-2">
+                        <i class="fas fa-clock text-muted"></i> Última: {{ $ultima_sync ?? 'N/A' }}
+                    </span>
+                    <span class="badge badge-light border text-dark">
+                        <i class="fas fa-database text-muted"></i> {{ $orders->total() }} registros
+                    </span>
                 </div>
+            </div>
+        </div>
 
-                <hr>
-
-                <!-- Sincronización por Cliente -->
-                <div class="mt-4">
-                    <h5 class="text-warning mb-3">
-                        <i class="fas fa-user-tag"></i> Sincronizar Pedidos por Cliente
-                    </h5>
-
-                    <form action="{{ route('orders.syncByCliente') }}" method="POST" class="row g-3">
+        {{-- Tarjeta 1: Sincronización General --}}
+ 
+        <!--
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card sync-card sync-card-warning h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="sync-icon-wrapper bg-warning mb-3">
+                        <i class="fas fa-retweet fa-lg text-white"></i>
+                    </div>
+                    <h6 class="font-weight-bold mb-1">Sincronización General</h6>
+                    <p class="text-muted small mb-3">Trae todos los pedidos pendientes del almacén</p>
+                    <form action="{{ route('orders.sync') }}" method="POST">
                         @csrf
-
-                        <div class="col-md-4">
-                            <label for="ctecve" class="form-label">Clave del Cliente</label>
-                            <div class="input-group">
+                        <button type="submit" class="btn btn-warning btn-block btn-sync">
+                            <i class="fas fa-sync-alt mr-1"></i> Sincronizar Pedidos
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        -->
+        
+        {{-- Tarjeta 2: Sincronización por Fecha --}}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card sync-card sync-card-success h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="sync-icon-wrapper bg-success mb-3">
+                        <i class="fas fa-calendar-day fa-lg text-white"></i>
+                    </div>
+                    <h6 class="font-weight-bold mb-1">Por Fecha</h6>
+                    <p class="text-muted small mb-3">Pedidos de una fecha específica </p>
+                    <form action="{{ route('orders.syncByDate') }}" method="POST">
+                        @csrf
+                        <div class="form-group mb-3">
+                            <label for="docfec" class="small font-weight-bold">Fecha del pedido</label>
+                            <div class="input-group input-group-sm">
                                 <div class="input-group-prepend">
-                                    <span class="input-group-text bg-white">
-                                        <i class="fas fa-user"></i>
-                                    </span>
+                                    <span class="input-group-text"><i class="fas fa-calendar text-muted"></i></span>
+                                </div>
+                                <input type="date"
+                                       name="docfec"
+                                       id="docfec"
+                                       class="form-control"
+                                       value="{{ old('docfec', now()->toDateString()) }}"
+                                       required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block btn-sync">
+                            <i class="fas fa-sync-alt mr-1"></i> Sincronizar por fecha
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Tarjeta 3: Sincronización por Cliente --}}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card sync-card sync-card-primary h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="sync-icon-wrapper bg-primary mb-3">
+                        <i class="fas fa-user-tag fa-lg text-white"></i>
+                    </div>
+                    <h6 class="font-weight-bold mb-1">Por Cliente</h6>
+                    <p class="text-muted small mb-3">Pedidos de un cliente específico </p>
+                    <form action="{{ route('orders.syncByCliente') }}" method="POST">
+                        @csrf
+                        <div class="form-group mb-3">
+                            <label for="ctecve" class="small font-weight-bold">Clave del Cliente</label>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-user text-muted"></i></span>
                                 </div>
                                 <input type="number"
                                        name="ctecve"
@@ -189,20 +226,14 @@
                                        required>
                             </div>
                         </div>
-
-                        <div class="col-md-4 align-self-end">
-                            <button type="submit" class="btn btn-primary btn-lg px-4 shadow-sm">
-                                <i class="fas fa-sync-alt"></i> Sincronizar Cliente
-                            </button>
-                        </div>
-
+                        <button type="submit" class="btn btn-primary btn-block btn-sync">
+                            <i class="fas fa-sync-alt mr-1"></i> Sincronizar Cliente
+                        </button>
                     </form>
                 </div>
-
             </div>
         </div>
     </div>
-</div>
 
 
 
@@ -442,6 +473,41 @@ $('#filtros-form input, #filtros-form select').on('change', function() {
 }
 .badge {
     font-size: 0.9em;
+}
+
+/* Panel de Sincronización */
+.sync-kpis .badge { font-size: 0.8rem; padding: 0.4rem 0.6rem; }
+.sync-card {
+    border-radius: 0.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.sync-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
+}
+.sync-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sync-card-warning { border-top: 4px solid #ffc107; }
+.sync-card-success { border-top: 4px solid #28a745; }
+.sync-card-primary { border-top: 4px solid #007bff; }
+.btn-sync {
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    border-radius: 0.35rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-sync:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+@media (max-width: 768px) {
+    .sync-kpis { margin-top: 0.5rem; }
 }
 </style>
 @endsection

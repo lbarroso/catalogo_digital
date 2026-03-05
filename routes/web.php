@@ -29,6 +29,15 @@ use App\Http\Controllers\InventorySyncController;
 
 */
 
+// ============== USUARIOS SUPABASE (Catálogo Digital / Pedidos Offline) ==============
+// Rutas para gestionar usuarios en Supabase Auth + public.users
+use App\Http\Controllers\SupabaseUserController;
+
+Route::middleware('auth')->group(function () {
+    Route::get('/supabase-users', [SupabaseUserController::class, 'index'])->name('supabase.users.index');
+    Route::get('/supabase-users/create', [SupabaseUserController::class, 'create'])->name('supabase.users.create');
+    Route::post('/supabase-users', [SupabaseUserController::class, 'store'])->name('supabase.users.store');
+});
 
 
 Route::get('/', function () {
@@ -59,6 +68,9 @@ Route::post('productstore',[App\Http\Controllers\ProductController::class,'produ
 
 Route::get('productvalidate',[App\Http\Controllers\ProductController::class,'productvalidate'])->name('product.validation');
 
+Route::post('/products/reset-current-warehouse', [App\Http\Controllers\ProductResetController::class, 'resetByCurrentAlmcnt'])
+    ->name('products.resetCurrentWarehouse')
+    ->middleware('auth');
 
 Route::resource('categories',App\Http\Controllers\CategoryController::class)->middleware('auth');
 
@@ -152,6 +164,7 @@ Route::get ('orders',[OrderController::class,'index']) ->name('orders.index');
 // Acción de sincronizar
 Route::post('orders/sync',[OrderController::class,'sync'])  ->name('orders.sync')->middleware('auth');
 Route::post('orders/sync-by-cliente', [OrderController::class, 'syncByCliente'])->name('orders.syncByCliente');
+Route::post('orders/sync-by-date', [OrderController::class, 'syncByDate'])->name('orders.syncByDate');
 
 // Análisis de cliente
 Route::get('orders/analisis-cliente',[OrderController::class,'analisisCliente'])->name('orders.analisis-cliente')->middleware('auth');

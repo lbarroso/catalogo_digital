@@ -322,3 +322,60 @@ DROP FUNCTION IF EXISTS public.get_frequent_products_by_user_id(
         AND o.order_date >= CURRENT_DATE - INTERVAL '7 days';
   $$;
    *************************************************************************************/
+
+
+   /*****************************************************************************************
+    * 
+    * En esta función se obtiene los pedidos de un almacén y una fecha específica
+    * y se sincronizan con el MySQL local.
+    * La fecha se pasa como parámetro p_date y es de tipo date.
+
+    DROP FUNCTION public.get_orders_by_almcnt_date;
+
+   CREATE OR REPLACE FUNCTION public.get_orders_by_almcnt_date(
+      p_almcnt integer,
+      p_date   date
+    )
+    RETURNS TABLE (
+        id            bigint,
+        order_date    timestamptz,
+        sync_date     timestamptz,
+        almcnt        integer,
+        doccreated    timestamptz,
+        docupdated    timestamptz,
+        ctecve        integer,
+        cliente_name  varchar,
+        quantity      integer,
+        unit_price    numeric,
+        code          varchar,
+        product_name  varchar,
+        unit          varchar
+    )
+    LANGUAGE sql
+    STABLE
+    AS $$
+        SELECT
+            o.id,
+            o.order_date,
+            o.sync_date,
+            o.almcnt,
+            o.created_at   AS doccreated,
+            o.updated_at   AS docupdated,
+            c.ctecve,
+            c.name         AS cliente_name,
+            oi.quantity,
+            oi.unit_price,
+            p.code,
+            p.name         AS product_name,
+            p.unit
+        FROM   public.orders        o
+        JOIN   public.customers     c  ON c.id      = o.customer_id
+        LEFT   JOIN public.order_items oi ON oi.order_id = o.id
+        LEFT   JOIN public.products      p  ON p.id      = oi.product_id
+        WHERE  o.almcnt = p_almcnt
+          AND o.sync_date::date = p_date;
+    $$;
+    *************************************************************************************/
+
+
+

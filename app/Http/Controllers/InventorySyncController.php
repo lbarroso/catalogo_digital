@@ -51,6 +51,11 @@ class InventorySyncController extends Controller
                       )
                     : 'placeholder.png';
 
+                    // productos canasta basica
+                    $canastaCategoryIds = [1,2,3,4,5,7,8,9,10,11,12,13,25,32,36,37,38,40,42,43,51,62,72];
+                    $categoryId = (int) $p->category_id;
+                    $is_canasta_basica = in_array($categoryId, $canastaCategoryIds, true) ? 1 : 0;
+
                 return [
                     'category_id' => $p->category_id,
                     'name'        => $p->artdesc,
@@ -61,7 +66,7 @@ class InventorySyncController extends Controller
                     'stock'       => $p->stock,
                     'unit'        => $p->artpesoum,
                     'is_active'   => true,
-                    'external_id' => $p->id,
+                    'external_id' => $is_canasta_basica,
                     'created_at'  => optional($p->created_at)->toIso8601String(),
                     'updated_at'  => optional($p->updated_at)->toIso8601String(),
                     'almcnt'      => $p->almcnt,

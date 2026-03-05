@@ -35,12 +35,14 @@ class OrderController extends Controller
             'order_id',
             'ctecve',
             'ctename',
-            'docfec',
+            'sync_date',
             DB::raw('COUNT(artcve) as pedida'),
-            DB::raw('docfec as ultima_compra'),
+            DB::raw('sync_date as ultima_compra'),
             DB::raw('SUM(doccant * artprventa) as total_ventas')
         )
-        ->groupBy('order_id', 'ctecve', 'ctename', 'docfec');
+        ->where('sync_date', '>=', Carbon::now()->subMonths(3))
+        ->groupBy('order_id', 'ctecve', 'ctename', 'sync_date')
+        ->orderBy('sync_date', 'desc');
 
         // Aplicar filtros específicos para consultas agrupadas
         $this->aplicarFiltrosAgrupados($orders, $request);
@@ -513,6 +515,66 @@ public function syncByCliente(Request $r)
     }
 }
 
+/**
+ * Sincroniza pedidos de una fecha específica desde Supabase al MySQL local.
+ */
+public function syncByDate(Request $r)
+{
+    $almcnt = auth()->user()->almcnt;
+    $fecha = $r->input('docfec');
+
+    if (!$fecha) {
+        return back()->with('error', 'Debes seleccionar una fecha para sincronizar.');
+    }
+
+    // 1. Obtener datos desde Supabase filtrando por almacén y fecha
+    $rows = $this->supabase->fetchOrdersByAlmcntDate($almcnt, $fecha);
+    $total = count($rows);
+
+    if ($total === 0) {
+        return back()->with('error', "No se encontraron pedidos para sincronizar de la fecha " . Carbon::parse($fecha)->format('d/m/Y') . ".");
+    }
+
+    // 2. Mapear datos para upsert
+    $batch = array_map(fn($r) => [
+        'order_id'     => $r['id'],
+        'docfec'       => Carbon::parse($r['order_date'])->toDateTimeString(),
+        'sync_date'    => Carbon::parse($r['sync_date'])->toDateTimeString(),
+        'almcnt'       => $r['almcnt'],
+        'doccreated'   => Carbon::parse($r['doccreated'])->toDateTimeString(),
+        'docupdated'   => Carbon::parse($r['docupdated'])->toDateTimeString(),
+        'ctecve'       => $r['ctecve'],
+        'ctename'      => $r['cliente_name'],
+        'artcve'       => $r['code'],
+        'artdesc'      => trim($r['product_name']),
+        'presentacion' => $r['unit'],
+        'doccant'      => $r['quantity'],
+        'artprventa'   => $r['unit_price'],
+        'importe'      => $r['quantity'] * $r['unit_price'],
+        'created_at'   => now(),
+        'updated_at'   => now(),
+    ], $rows);
+
+    try {
+        DB::transaction(function () use ($batch){
+
+            // 3.1 Upsert local
+            Order::upsert(
+                $batch,
+                ['order_id','artcve','almcnt'], // clave única compuesta
+                ['doccant','artprventa','importe','artdesc','docupdated','sync_date']
+            );
+
+        });
+
+        return back()->with('success', "✅ Sincronización exitosa: $total registros actualizados de la fecha " . Carbon::parse($fecha)->format('d/m/Y') . ".");
+
+    } catch (\Exception $e) {
+        return back()->with('error', "❌ Error en sincronización: " . $e->getMessage());
+    }
+} // syncByDate
+
+
 
     public function detallePdf(Request $request)
     {
@@ -521,9 +583,37 @@ public function syncByCliente(Request $r)
         $almcnt = auth()->user()->almcnt;
 
         // Buscar los productos del pedido por order_id y almcnt
+        /*
         $productos = Order::where('almcnt', $almcnt)
             ->where('order_id', $orderId)
             ->orderBy('artdesc', 'asc') // Ordenar los productos por descripción
+            ->get();
+        */
+
+        $productos = Order::query()
+            ->select([
+                'orders.order_id',
+                'orders.docfec',
+                'orders.sync_date',
+                'orders.almcnt',
+                'orders.ctecve',
+                'orders.ctename',
+                'products.category_id',
+                'orders.artcve',
+                'orders.artdesc',
+                'orders.doccant',
+                'orders.presentacion',
+                'orders.artprventa',
+                'orders.importe',
+            ])
+            ->leftJoin('products', function ($join) {
+                $join->on('orders.artcve', '=', 'products.artcve')
+                    ->on('orders.almcnt', '=', 'products.almcnt');
+            })
+            ->where('orders.almcnt', $almcnt)
+            ->where('orders.order_id', $orderId)
+            ->groupBy('orders.id')
+            ->orderBy('products.category_id')
             ->get();
 
         // Si no se encuentran productos, devolver un error 404

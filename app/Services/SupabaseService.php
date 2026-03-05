@@ -3,6 +3,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Carbon;
 
 class SupabaseService
 {
@@ -70,6 +71,30 @@ public function fetchOrdersByAlmcntCtecve(int $almcnt, int $ctecve): array
     }
 }
 
+/**
+ * Obtiene pedidos desde Supabase filtrando por almacén y fecha.
+ */
+public function fetchOrdersByAlmcntDate(int $almcnt, string $fecha): array
+{
+    // Normaliza la fecha (lanza InvalidArgumentException si es inválida)    
+    $fecha = Carbon::parse($fecha)->toDateString();   // 'YYYY-MM-DD'
+    
+    try {
+        $resp = Http::withHeaders($this->headers)
+            ->post("{$this->baseUrl}/rpc/get_orders_by_almcnt_date", [
+                'p_almcnt' => $almcnt,
+                'p_date' => $fecha                
+            ]);
+
+        $resp->throw(); // lanza excepción si hay error HTTP
+
+        return $resp->json();
+
+    } catch (RequestException $e) {
+        $msg = $e->response?->body() ?? $e->getMessage();
+        throw new \RuntimeException("Error RPC Supabase (get_orders_by_almcnt_date): $msg");
+    }
+} // fetchOrdersByAlmcntDate
 
 
     /**

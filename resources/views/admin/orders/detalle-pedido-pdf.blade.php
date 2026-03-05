@@ -13,7 +13,7 @@
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .header h1 {
             font-size: 12px;
@@ -107,7 +107,7 @@
             <p><strong>Total del Pedido:</strong> ${{ number_format($totalPedido, 2) }}</p>
             <p><strong>Almacén:</strong> {{ $infoPedido->almcnt }}</p>
         </div>
-        <div class="clear"></div>
+            <div class="clear"></div>
     </div>
 
     <div class="table-section">
