@@ -16,7 +16,7 @@ use App\Exports\CatalogoExport;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Config;
 
 class ProductController extends Controller
 {
@@ -320,55 +320,68 @@ class ProductController extends Controller
         return view('reports.cenefas', compact('categories','tiposInventarios'));
    }
 
-    // cenefas con precio
+
+    // cenefas con precio con tipo de inventario
     public function cenefasEtiquetaPrecio(Request $request)
     {
         $user = Auth::user();
-
-        // Establecer la zona horaria
-        date_default_timezone_set('America/Mexico_City');
-    
-        // Obtener la fecha actual
         $fecha = date('d-m-Y\TH:i:s');
-    
-        // Validar la entrada
-        $request->validate([
-            'category_id' => 'required|integer'
-        ]);
-    
-        $category_id = $request->input('category_id');
-        $tipoinv = !empty($request->input('artseccion')) ? $request->input('artseccion') : 1;
         
-        // $tipoinv = 6;
-    
-        // Construir la consulta base de productos
-        $query = Product::select(
-                'products.artprventa',
-                'products.artdesc',
-                'products.artpesoum',
-                'products.category_id'
-            )            
-            
-            ->where('products.artstatus', 'A')
-            ->where('almcnt', $user->almcnt)
-            ->where('stock', '>', 0)
-            ->where('artseccion', $tipoinv)
-            ->orderBy('products.category_id')
-            ->orderBy('products.artcve')
-            ->groupBy('products.artprventa', 'products.artdesc', 'products.artpesoum', 'products.category_id')
-            ->distinct(); // Añadido para asegurarse de que no haya duplicados
-    
-        // Incluir la condición de categoría si el category_id es mayor a cero
-        if ($category_id > 0) {
-            $query->where('products.category_id', $category_id);
-        }
-    
-        // Obtener los productos
-        $products = $query->get();
-    
+        // Configuración de la base de datos
+        $config = [
+            'driver' => 'pgsql',
+            'host' => $user->ip,
+            'port' => 5432,
+            'database' => 'siac',
+            'username' => 'gpsdiconsa',
+            'password' => 'Gp5D1con54',
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+        ];   
+
+        // Establecer la configuración de la base de datos
+        Config::set('database.connections.pgsql', $config);
+
+        // Conexión a la base de datos SIAC (PostgreSQL)
+        $products = DB::connection('pgsql')->select("
+            SELECT
+                a.artdesc,
+                a.artcve,
+                ah.artmed,
+                ah.artgms,
+                ROUND(
+                    (
+                        (ah.artprcventa * ah.artiva     / 100) +
+                        (ah.artprcventa * ah.artiepsvta / 100) +
+                        ah.artprcventa
+                    ) / ah.artcap,
+                    2
+                ) AS pieza
+            FROM articulos a
+            INNER JOIN arthist ah
+                ON a.artcve = ah.artcve
+            INNER JOIN articul1 a1
+                ON a1.artcve  = ah.artcve
+            AND a1.invhist = ah.arthist
+            WHERE a.artstatus = 'A' AND invtpoinv = :invtpoinv
+            AND a1.invmes = EXTRACT(MONTH FROM CURRENT_DATE)
+            AND (
+                    ((a1.inviniuni + a1.inventuni - a1.invsaluni) * ah.artcap) +
+                    (a1.invinires + a1.inventres - a1.invsalres)
+                ) > 0
+            ORDER BY
+                a.famcve,
+                a.artcve,
+                a1.invtpoinv,
+                a1.invhist DESC; ", ['invtpoinv' => $request->artseccion]);
+        
+        // Convertir el arreglo de resultados en una colección de Laravel
+        $products = collect($products);  // Convertimos el resultado en una colección        
+
         // Generar el PDF con los productos
-        $pdf = Pdf::loadView('pdf.cenefas', ['products' => $products]);
-    
+        $pdf = Pdf::loadView('pdf.cenefas-factura', ['products' => $products]);
+
         // Retornar el PDF para su descarga
         return $pdf->stream('CenefasConPrecio' . $fecha . '.pdf');  
     }

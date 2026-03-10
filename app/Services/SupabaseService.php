@@ -52,13 +52,14 @@ class SupabaseService
 /**
  * Obtiene pedidos desde Supabase filtrando por almacén y cliente (ctecve).
  */
-public function fetchOrdersByAlmcntCtecve(int $almcnt, int $ctecve): array
+public function fetchOrdersByAlmcntCtecve(int $almcnt, int $ctecve, string $order_date): array
 {
     try {
         $resp = Http::withHeaders($this->headers)
             ->post("{$this->baseUrl}/rpc/get_orders_by_almcnt_ctecve", [
                 'p_almcnt' => $almcnt,
-                'p_ctecve' => $ctecve
+                'p_ctecve' => $ctecve,
+                'p_order_date' => $order_date
             ]);
 
         $resp->throw(); // lanza excepción si hay error HTTP
@@ -312,29 +313,67 @@ public function createAuthUser(string $email, string $password): array
     }
 
 
-/* ============================================================
- *  LISTAR TODOS LOS auth.users (requiere service role key)
- * ============================================================ */
-public function listAuthUsers(): array
-{
-    $authUrl = rtrim(config('services.supabase.url'), '/') . '/auth/v1';
-    $serviceKey = config('services.supabase.service_role_key');
+    /* ============================================================
+    *  LISTAR TODOS LOS auth.users (requiere service role key)
+    * ============================================================ */
+    public function listAuthUsers(): array
+    {
+        $authUrl = rtrim(config('services.supabase.url'), '/') . '/auth/v1';
+        $serviceKey = config('services.supabase.service_role_key');
 
-    try {
-        $response = Http::withHeaders([
-            'apikey'        => $serviceKey,
-            'Authorization' => 'Bearer ' . $serviceKey,
-            'Accept'        => 'application/json',
-        ])->get("$authUrl/admin/users");
+        try {
+            $response = Http::withHeaders([
+                'apikey'        => $serviceKey,
+                'Authorization' => 'Bearer ' . $serviceKey,
+                'Accept'        => 'application/json',
+            ])->get("$authUrl/admin/users");
 
-        $response->throw();
-        return $response->json()['users'] ?? $response->json();
+            $response->throw();
+            return $response->json()['users'] ?? $response->json();
 
-    } catch (\Exception $e) {
-        throw new \RuntimeException("Error obteniendo auth.users: ".$e->getMessage());
+        } catch (\Exception $e) {
+            throw new \RuntimeException("Error obteniendo auth.users: ".$e->getMessage());
+        }
     }
-}
-    
+        
 
+
+    /**
+     * Upsert masivo de clientes en Supabase.
+     *
+     * @param array $rows
+     * @return array
+     * @throws \RuntimeException
+     */
+    public function upsertCustomers(array $rows): array
+    {
+        try {
+            $url = "{$this->baseUrl}/customers?on_conflict=almcnt,ctecve,cancve";
+            
+
+            $response = Http::withHeaders(array_merge(
+                    $this->headers,
+                    [
+                        'Prefer'       => 'resolution=merge-duplicates,return=representation',
+                        'Content-Type' => 'application/json',
+                        'Accept'       => 'application/json',
+                    ]
+                ))
+                ->timeout(30)
+                ->post($url, $rows);
+
+            $response->throw();
+
+            return $response->json() ?? [];
+
+        } catch (RequestException $e) {
+            $status = $e->response?->status();
+            $body   = $e->response?->body();
+
+            throw new \RuntimeException(
+                "Error HTTP $status al hacer upsert de clientes en Supabase: $body"
+            );
+        }
+    }
 
 } // class

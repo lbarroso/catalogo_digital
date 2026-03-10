@@ -274,53 +274,63 @@ DROP FUNCTION IF EXISTS public.get_frequent_products_by_user_id(
 
    *************************************************************************************/
 
-     /*****************************************************************************************
-    DROP FUNCTION public.get_orders_by_almcnt_ctecve;
-                  
+    /*****************************************************************************************
+     * obtiene los pedidos de un almacén y un cliente específico y fecha específica
+     * p_order_date es de tipo date.
+     *  
+     *  version 2: actualizada
+     DROP FUNCTION public.get_orders_by_almcnt_ctecve;
 
-   Aquí tienes la versión actualizada de la función, que añade el filtro para que solo devuelva pedidos cuyo order_date sea a partir del primer día del mes en curso:
-   
-    CREATE OR REPLACE FUNCTION public.get_orders_by_almcnt_ctecve(p_almcnt integer, p_ctecve integer)
-  RETURNS TABLE(
-      id            bigint,
-      order_date    timestamp without time zone,
-      sync_date     timestamp without time zone,
-      almcnt        integer,
-      doccreated    timestamp without time zone,
-      docupdated    timestamp without time zone,
-      ctecve        integer,
-      cliente_name  character varying,
-      quantity      integer,
-      unit_price    numeric,
-      code          character varying,
-      product_name  character varying,
-      unit          character varying
-  )
-  LANGUAGE sql
-  STABLE
-  AS $$
-      SELECT
-          o.id,
-          o.order_date,
-          o.sync_date,
-          o.almcnt,
-          o.created_at   AS doccreated,
-          o.updated_at   AS docupdated,
-          c.ctecve,
-          c.name         AS cliente_name,
-          oi.quantity,
-          oi.unit_price,
-          p.code,
-          p.name         AS product_name,
-          p.unit
-      FROM public.orders o
-      JOIN public.customers c         ON o.customer_id   = c.id
-      LEFT JOIN public.order_items oi ON oi.order_id     = o.id
-      LEFT JOIN public.products    p  ON oi.product_id   = p.id
-      WHERE o.almcnt = p_almcnt        
-        AND c.ctecve = p_ctecve
-        AND o.order_date >= CURRENT_DATE - INTERVAL '7 days';
-  $$;
+    CREATE OR REPLACE FUNCTION public.get_orders_by_almcnt_ctecve(
+        p_almcnt integer,
+        p_ctecve integer,
+        p_order_date date
+    )
+    RETURNS TABLE(
+        id            bigint,
+        order_date    timestamp without time zone,
+        sync_date     timestamp without time zone,
+        almcnt        integer,
+        doccreated    timestamp without time zone,
+        docupdated    timestamp without time zone,
+        ctecve        integer,
+        cliente_name  character varying,
+        quantity      integer,
+        unit_price    numeric,
+        code          character varying,
+        product_name  character varying,
+        unit          character varying
+    )
+    LANGUAGE sql
+    STABLE
+    AS $$
+        SELECT
+            o.id,
+            o.order_date,
+            o.sync_date,
+            o.almcnt,
+            o.created_at AS doccreated,
+            o.updated_at AS docupdated,
+            c.ctecve,
+            c.name AS cliente_name,
+            oi.quantity,
+            oi.unit_price,
+            p.code,
+            p.name AS product_name,
+            p.unit
+        FROM public.orders o
+        JOIN public.customers c
+            ON o.customer_id = c.id
+        LEFT JOIN public.order_items oi
+            ON oi.order_id = o.id
+        LEFT JOIN public.products p
+            ON oi.product_id = p.id
+        WHERE o.almcnt = p_almcnt
+          AND c.ctecve = p_ctecve
+          AND o.order_date >= p_order_date::timestamp
+          AND o.order_date <  (p_order_date::timestamp + INTERVAL '1 day');
+    $$;
+
    *************************************************************************************/
 
 
@@ -377,5 +387,52 @@ DROP FUNCTION IF EXISTS public.get_frequent_products_by_user_id(
     $$;
     *************************************************************************************/
 
+/*****************************************************************************************
+    version 2: actualizada
+CREATE OR REPLACE FUNCTION public.get_orders_by_almcnt_date(
+    p_almcnt integer,
+    p_date   date
+)
+RETURNS TABLE (
+    order_id       bigint,
+    order_item_id  bigint,
+    order_date     timestamptz,
+    sync_date      timestamptz,
+    almcnt         integer,
+    doccreated     timestamptz,
+    docupdated     timestamptz,
+    ctecve         integer,
+    cliente_name   varchar,
+    quantity       integer,
+    unit_price     numeric,
+    code           varchar,
+    product_name   varchar,
+    unit           varchar
+)
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT
+        o.id              AS order_id,
+        oi.id             AS order_item_id,
+        o.order_date,
+        o.sync_date,
+        o.almcnt,
+        o.created_at      AS doccreated,
+        o.updated_at      AS docupdated,
+        c.ctecve,
+        c.name            AS cliente_name,
+        oi.quantity,
+        oi.unit_price,
+        p.code,
+        p.name            AS product_name,
+        p.unit
+    FROM public.orders o
+    JOIN public.customers c ON c.id = o.customer_id
+    JOIN public.order_items oi ON oi.order_id = o.id
+    LEFT JOIN public.products p ON p.id = oi.product_id
+    WHERE o.almcnt = p_almcnt
+      AND o.sync_date::date = p_date;
+$$;
 
-
+    *************************************************************************************/  

@@ -213,6 +213,20 @@
                     <form action="{{ route('orders.syncByCliente') }}" method="POST">
                         @csrf
                         <div class="form-group mb-3">
+                            <label for="order_date" class="small font-weight-bold">Fecha del pedido</label>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-calendar text-muted"></i></span>
+                                </div>
+                                <input type="date"
+                                       name="order_date"
+                                       id="order_date"
+                                       class="form-control"
+                                       value="{{ old('order_date', now()->toDateString()) }}"
+                                       required>
+                            </div>
+                        </div>                        
+                        <div class="form-group mb-3">
                             <label for="ctecve" class="small font-weight-bold">Clave del Cliente</label>
                             <div class="input-group input-group-sm">
                                 <div class="input-group-prepend">
@@ -227,7 +241,7 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary btn-block btn-sync">
-                            <i class="fas fa-sync-alt mr-1"></i> Sincronizar Cliente
+                            <i class="fas fa-sync-alt mr-1"></i> Sincronizar por Cliente y Fecha
                         </button>
                     </form>
                 </div>

@@ -7,11 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+
     protected $fillable = [
-        'order_id','docfec','sync_date','almcnt',
-        'doccreated','docupdated',
-        'ctecve','ctename',
-        'artcve','artdesc','presentacion',
-        'doccant','artprventa','importe',
+        'order_id',
+        'external_item_id',
+        'docfec',
+        'sync_date',
+        'almcnt',
+        'doccreated',
+        'docupdated',
+        'ctecve',
+        'ctename',
+        'artcve',
+        'artdesc',
+        'presentacion',
+        'doccant',
+        'artprventa',
+        'importe',
     ];
+
 }

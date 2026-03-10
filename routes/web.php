@@ -8,6 +8,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\InventorySyncController;
 
+use App\Http\Controllers\CustomerImportController;
 
 /*
 
@@ -29,14 +30,29 @@ use App\Http\Controllers\InventorySyncController;
 
 */
 
+
 // ============== USUARIOS SUPABASE (Catálogo Digital / Pedidos Offline) ==============
 // Rutas para gestionar usuarios en Supabase Auth + public.users
 use App\Http\Controllers\SupabaseUserController;
+use App\Http\Controllers\CustomerSyncController;
 
 Route::middleware('auth')->group(function () {
     Route::get('/supabase-users', [SupabaseUserController::class, 'index'])->name('supabase.users.index');
     Route::get('/supabase-users/create', [SupabaseUserController::class, 'create'])->name('supabase.users.create');
     Route::post('/supabase-users', [SupabaseUserController::class, 'store'])->name('supabase.users.store');
+});
+
+
+
+Route::middleware('auth')->group(function () {
+    // importacion de clientes
+    Route::get('/customers/import', [CustomerImportController::class, 'create'])->name('customers.import.create');
+    Route::post('/customers/import', [CustomerImportController::class, 'store'])->name('customers.import.store');
+    Route::get('/customers', [CustomerImportController::class, 'index'])->name('customers.index');
+    Route::put('/customers/{id}/localidad', [CustomerImportController::class, 'updateLocalidad'])->name('customers.updateLocalidad');
+    // sincronizacion de clientes
+    Route::post('/customers/sync-supabase', [CustomerSyncController::class, 'syncToSupabase'])
+        ->name('customers.syncSupabase');
 });
 
 

@@ -166,7 +166,16 @@
                                     Productos en Oferta
 								</p>
 							</a>
-						</li>		                        
+						</li>		
+                        
+                        <!--clientes-->
+                        <li class="nav-item">
+                            <a href="{{ route('customers.index') }}" class="nav-link {{ active_menu(route('customers.index')) }}">
+                                <i class="nav-icon fas fa-users"></i>
+                                <p>Clientes</p>
+                            </a>
+                        </li>
+                        <!--fin clientes-->
 
 						
 						

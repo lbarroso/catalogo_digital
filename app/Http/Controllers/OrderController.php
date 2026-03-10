@@ -463,13 +463,14 @@ public function syncByCliente(Request $r)
 {
     $almcnt = auth()->user()->almcnt;
     $ctecve = $r->input('ctecve');
-
+    $order_date = $r->input('order_date')? Carbon::parse($r->input('order_date'))->toDateString() : today()->toDateString();
+    
     if (!$ctecve) {
         return back()->with('error', 'Debes seleccionar un cliente (ctecve) para sincronizar.');
     }
 
     // 1. Obtener datos desde Supabase filtrando por almacén y cliente
-    $rows = $this->supabase->fetchOrdersByAlmcntCtecve($almcnt, $ctecve);
+    $rows = $this->supabase->fetchOrdersByAlmcntCtecve($almcnt, $ctecve, $order_date);
     $total = count($rows);
 
     if ($total === 0) {
@@ -537,22 +538,23 @@ public function syncByDate(Request $r)
 
     // 2. Mapear datos para upsert
     $batch = array_map(fn($r) => [
-        'order_id'     => $r['id'],
-        'docfec'       => Carbon::parse($r['order_date'])->toDateTimeString(),
-        'sync_date'    => Carbon::parse($r['sync_date'])->toDateTimeString(),
-        'almcnt'       => $r['almcnt'],
-        'doccreated'   => Carbon::parse($r['doccreated'])->toDateTimeString(),
-        'docupdated'   => Carbon::parse($r['docupdated'])->toDateTimeString(),
-        'ctecve'       => $r['ctecve'],
-        'ctename'      => $r['cliente_name'],
-        'artcve'       => $r['code'],
-        'artdesc'      => trim($r['product_name']),
-        'presentacion' => $r['unit'],
-        'doccant'      => $r['quantity'],
-        'artprventa'   => $r['unit_price'],
-        'importe'      => $r['quantity'] * $r['unit_price'],
-        'created_at'   => now(),
-        'updated_at'   => now(),
+        'order_id'          => $r['order_id'],
+        'external_item_id'  => $r['order_item_id'],
+        'docfec'            => Carbon::parse($r['order_date'])->toDateString(),
+        'sync_date'         => $r['sync_date'] ? Carbon::parse($r['sync_date'])->toDateTimeString() : null,
+        'almcnt'            => $r['almcnt'],
+        'doccreated'        => $r['doccreated'] ? Carbon::parse($r['doccreated'])->toDateTimeString() : null,
+        'docupdated'        => $r['docupdated'] ? Carbon::parse($r['docupdated'])->toDateTimeString() : null,
+        'ctecve'            => $r['ctecve'],
+        'ctename'           => $r['cliente_name'],
+        'artcve'            => $r['code'],
+        'artdesc'           => trim((string) $r['product_name']),
+        'presentacion'      => $r['unit'] ?? 1,
+        'doccant'           => $r['quantity'],
+        'artprventa'        => $r['unit_price'],
+        'importe'           => $r['quantity'] * $r['unit_price'],
+        'created_at'        => now(),
+        'updated_at'        => now(),
     ], $rows);
 
     try {
@@ -561,8 +563,23 @@ public function syncByDate(Request $r)
             // 3.1 Upsert local
             Order::upsert(
                 $batch,
-                ['order_id','artcve','almcnt'], // clave única compuesta
-                ['doccant','artprventa','importe','artdesc','docupdated','sync_date']
+                ['external_item_id'],
+                [
+                    'docfec',
+                    'sync_date',
+                    'almcnt',
+                    'doccreated',
+                    'docupdated',
+                    'ctecve',
+                    'ctename',
+                    'artcve',
+                    'artdesc',
+                    'presentacion',
+                    'doccant',
+                    'artprventa',
+                    'importe',
+                    'updated_at',
+                ]
             );
 
         });
