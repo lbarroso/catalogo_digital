@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\InventorySyncController;
 
 use App\Http\Controllers\CustomerImportController;
+use App\Http\Controllers\CustomerMapController;
 
 /*
 
@@ -50,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/customers/import', [CustomerImportController::class, 'store'])->name('customers.import.store');
     Route::get('/customers', [CustomerImportController::class, 'index'])->name('customers.index');
     Route::put('/customers/{id}/localidad', [CustomerImportController::class, 'updateLocalidad'])->name('customers.updateLocalidad');
+    Route::get('/customers/map', [CustomerMapController::class, 'index'])->name('customers.map');
     // sincronizacion de clientes
     Route::post('/customers/sync-supabase', [CustomerSyncController::class, 'syncToSupabase'])
         ->name('customers.syncSupabase');

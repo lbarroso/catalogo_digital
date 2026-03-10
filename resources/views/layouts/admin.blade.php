@@ -175,6 +175,12 @@
                                 <p>Clientes</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('customers.map') }}" class="nav-link {{ active_menu(route('customers.map')) }}">
+                                <i class="nav-icon fas fa-map-marked-alt"></i>
+                                <p>Mapa de Clientes</p>
+                            </a>
+                        </li>
                         <!--fin clientes-->
 
 						
