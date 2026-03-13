@@ -27,7 +27,7 @@ class ExportProductImages extends Command
             File::makeDirectory($rutaDestino, 0755, true);
         }
 
-        $productos = Product::with('media')->where('almcnt', 2039)->get();
+        $productos = Product::with('media')->where('almcnt', 2017)->get();
         $exportados = 0;
 
         foreach ($productos as $producto) {

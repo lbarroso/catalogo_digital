@@ -30,6 +30,8 @@ class CustomerMapController extends Controller
                 'localidad',
                 'encargado',
                 'telefono',
+                'nombre_sup',
+                'ruta_sup',
                 'latitud',
                 'longitud',
             ])

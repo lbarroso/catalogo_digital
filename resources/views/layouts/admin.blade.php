@@ -183,6 +183,12 @@
                         </li>
                         <!--fin clientes-->
 
+						<li class="nav-item">
+                            <a href="{{ route('consultas.canasta_basica') }}" class="nav-link {{ active_menu(route('consultas.canasta_basica')) }}">
+                                <i class="nav-icon fas fa-shopping-basket"></i>
+                                <p> Canasta Básica </p>
+                            </a>
+                        </li>
 						
 						
                         <li class="nav-item">

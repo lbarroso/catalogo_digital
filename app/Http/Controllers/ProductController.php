@@ -287,13 +287,30 @@ class ProductController extends Controller
         ->get();    
 
         // novedades
-        $releases = DB::select(" SELECT releases.artcve, products.artdesc, products.artpesoum, products.artprventa, products.artseccion, products.stock, categories.name, media.file_name, media.id
-        FROM releases
-        INNER JOIN products ON products.artcve = releases.artcve AND products.almcnt = releases.almcnt
-        INNER JOIN categories ON products.category_id = categories.id
-        INNER JOIN media ON products.id = media.model_id
-        WHERE releases.almcnt =".$user->almcnt);        
-        
+        $releases = Product::query()
+        ->from('products as p')
+        ->select([        
+        'p.artcve',
+        'p.artdesc',
+        'p.artpesoum',
+        'm.file_name',
+        'm.id',
+        ])
+        ->join('media as m', function ($join) {
+        $join->on('m.id', '=', DB::raw("(
+            SELECT m2.id
+            FROM media m2
+            WHERE m2.model_type = 'App\\\\Models\\\\Product'
+            AND m2.model_id   = p.id
+            ORDER BY m2.id DESC
+            LIMIT 1
+        )"));
+        })
+        ->where('p.almcnt', $user->almcnt)
+        ->where('p.artestilo', 'oferta')
+        ->orderBy('p.category_id', 'asc')
+        ->get();
+                
         $pdf = Pdf::loadView('pdf.catalogo',['products' => $products, 'categories' => $categories, 'empresa'=>$empresa, 'releases'=>$releases, 'artprventa' =>$artprventa ]);
 
         return $pdf->stream('CatalogoDigital'.$fecha.'.pdf');
@@ -426,13 +443,29 @@ class ProductController extends Controller
         $categories = $products->pluck('category.name')->unique()->sort()->values();
 
         /* 4) Productos “novedad” (relación Release → Product) */
-        $releases = Release::where('almcnt', $almcnt)
-            ->with(['product.media','product.category'])
-            ->whereHas('product', fn($q)=>$q->where('stock','>',0))
-            ->get()
-            ->map->product
-            ->unique('artcve')
-            ->values();      // colección lista para la vista
+        $releases = Product::query()
+            ->from('products as p')
+            ->select([
+                'p.id',
+                'p.artcve',
+                'p.artdesc',
+                'p.artpesoum',
+                'm.file_name',
+            ])
+            ->join('media as m', function ($join) {
+                $join->on('m.id', '=', DB::raw("(
+                    SELECT m2.id
+                    FROM media m2
+                    WHERE m2.model_type = 'App\\\\Models\\\\Product'
+                    AND m2.model_id   = p.id
+                    ORDER BY m2.id DESC
+                    LIMIT 1
+                )"));
+            })
+            ->where('p.almcnt', $almcnt)
+            ->where('p.artestilo', 'oferta')
+            ->orderBy('p.category_id', 'asc')
+            ->get();
 
         /* 5) Render-PDF */
         $pdf = Pdf::loadView(

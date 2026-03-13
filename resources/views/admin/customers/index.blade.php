@@ -76,7 +76,7 @@
                             <th>Localidad</th>
                             <th>Encargado</th>
                             <th>Teléfono</th>
-                            <th>RFC</th>
+                            
                             <th>CURP</th>
                             <th>CP</th>
                             <th>Lat</th>
@@ -99,7 +99,7 @@
                             <td>{{ $c->localidad }}</td>
                             <td>{{ $c->encargado }}</td>
                             <td>{{ $c->telefono }}</td>
-                            <td>{{ $c->rfc }}</td>
+                            
                             <td>{{ $c->curp }}</td>
                             <td>{{ $c->codigo_postal }}</td>
                             <td class="text-monospace small">

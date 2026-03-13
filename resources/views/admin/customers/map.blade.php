@@ -139,8 +139,9 @@
             ctecve: p.ctecve,
             canal: p.canal != null ? parseInt(p.canal, 10) : null,
             localidad: p.localidad || '',
-            encargado: p.encargado || '',
-            telefono: p.telefono || '',
+            encargado: p.encargado || '',            
+            nombre_sup: p.nombre_sup || '',
+            ruta_sup: p.ruta_sup || '',
             lat: lat,
             lng: lng
         };
@@ -181,10 +182,11 @@
     function buildPopupContent(p) {
         return '<div class="small">' +
             '<strong>' + (p.localidad || '—') + '</strong><br>' +
-            'CTECVE: ' + (p.ctecve != null ? p.ctecve : '—') + '<br>' +
+            
             'Canal: ' + (p.canal != null ? p.canal : '—') + '<br>' +
-            'Encargado: ' + (p.encargado || '—') + '<br>' +
-            'Teléfono: ' + (p.telefono || '—') + '<br>' +
+            'Encargado: ' + (p.encargado || '—') + '<br>' +            
+            'Nombre Sup: ' + (p.nombre_sup || '—') + '<br>' +
+            'Ruta Sup: ' + (p.ruta_sup || '—') + '<br>' +
             'Coordenadas: ' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '</div>';
     }
 

@@ -11,6 +11,7 @@ use App\Http\Controllers\InventorySyncController;
 use App\Http\Controllers\CustomerImportController;
 use App\Http\Controllers\CustomerMapController;
 
+
 /*
 
 |--------------------------------------------------------------------------
@@ -209,3 +210,6 @@ Route::middleware('auth')->group(function () {
 });
 
 
+//consultas canasta basica
+Route::get('/consultas/canasta-basica', [App\Http\Controllers\ConsultasController::class, 'canastaBasica'])->name('consultas.canasta_basica')->middleware('auth');
+Route::post('consultas/canasta-basica', [App\Http\Controllers\ConsultasController::class, 'canastaBasica'])->name('consultas.filtrar')->middleware('auth');
